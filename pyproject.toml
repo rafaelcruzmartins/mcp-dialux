@@ -1,0 +1,25 @@
+[project]
+name = "dialux-mcp-server"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Rafael Cruz", email = "185978906+rafaelcruzmartins@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.9",
+    "pdfplumber>=0.11.11",
+    "pywinauto>=0.6.9",
+]
+
+[project.scripts]
+dialux-mcp-server = "dialux_mcp_server:main"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]

@@ -1,0 +1,180 @@
+=== WINDOW 'DIALux evo 14.0  (64-Bit)' aid='MainWindow' cls='Window'
+[Window] name='DIALux evo 14.0  (64-Bit)' aid='MainWindow' cls='Window' enabled=True
+  [Window] name='' aid='' cls='Popup' enabled=True
+    [MenuItem] name='Novo Projecto' aid='New' cls='MenuItem' enabled=True
+      [Text] name='_Novo Projecto' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Abrir' aid='OpenProject' cls='MenuItem' enabled=True
+      [Text] name='Ab_rir' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Fechar' aid='CloseProject' cls='MenuItem' enabled=False
+      [Text] name='F_echar' aid='' cls='TextBlock' enabled=False
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Guardar' aid='Save' cls='MenuItem' enabled=False
+      [Text] name='Guardar' aid='' cls='TextBlock' enabled=False
+    [MenuItem] name='Guardar como...' aid='SaveAs' cls='MenuItem' enabled=False
+      [Text] name='Gu_ardar como...' aid='' cls='TextBlock' enabled=False
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Importar' aid='Import' cls='MenuItem' enabled=True
+      [Text] name='I_mportar' aid='' cls='TextBlock' enabled=True
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Visãolateral...' aid='PrintPreview' cls='MenuItem' enabled=False
+      [Text] name='Visão_lateral...' aid='' cls='TextBlock' enabled=False
+    [MenuItem] name='Imprimir...' aid='Print' cls='MenuItem' enabled=False
+      [Text] name='_Imprimir...' aid='' cls='TextBlock' enabled=False
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Definições' aid='Settings' cls='MenuItem' enabled=True
+      [Text] name='_Definições' aid='' cls='TextBlock' enabled=True
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Últimos projectos abertos' aid='RecentProjects' cls='MenuItem' enabled=True
+      [Text] name='Ú_ltimos projectos abertos' aid='' cls='TextBlock' enabled=True
+    [Separator] name='' aid='' cls='Separator' enabled=False
+    [MenuItem] name='Sair' aid='CloseApplication' cls='MenuItem' enabled=True
+      [Text] name='_Sair' aid='' cls='TextBlock' enabled=True
+  [TitleBar] name='' aid='' cls='' enabled=True
+    [MenuBar] name='Sistema' aid='MenuBar' cls='' enabled=True
+      [MenuItem] name='Sistema' aid='' cls='' enabled=True
+    [Button] name='Minimizar' aid='' cls='' enabled=True
+    [Button] name='Restaurar' aid='' cls='' enabled=True
+    [Button] name='Fechar' aid='' cls='' enabled=True
+  [Menu] name='' aid='MainMenu' cls='Menu' enabled=True
+    [MenuItem] name='Ficheiro' aid='File' cls='MenuItem' enabled=True
+      [MenuItem] name='Novo Projecto' aid='New' cls='MenuItem' enabled=True
+        [Text] name='_Novo Projecto' aid='' cls='TextBlock' enabled=True
+      [MenuItem] name='Abrir' aid='OpenProject' cls='MenuItem' enabled=True
+        [Text] name='Ab_rir' aid='' cls='TextBlock' enabled=True
+      [MenuItem] name='Fechar' aid='CloseProject' cls='MenuItem' enabled=False
+        [Text] name='F_echar' aid='' cls='TextBlock' enabled=False
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Guardar' aid='Save' cls='MenuItem' enabled=False
+        [Text] name='Guardar' aid='' cls='TextBlock' enabled=False
+      [MenuItem] name='Guardar como...' aid='SaveAs' cls='MenuItem' enabled=False
+        [Text] name='Gu_ardar como...' aid='' cls='TextBlock' enabled=False
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Importar' aid='Import' cls='MenuItem' enabled=True
+        [Text] name='I_mportar' aid='' cls='TextBlock' enabled=True
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Visãolateral...' aid='PrintPreview' cls='MenuItem' enabled=False
+        [Text] name='Visão_lateral...' aid='' cls='TextBlock' enabled=False
+      [MenuItem] name='Imprimir...' aid='Print' cls='MenuItem' enabled=False
+        [Text] name='_Imprimir...' aid='' cls='TextBlock' enabled=False
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Definições' aid='Settings' cls='MenuItem' enabled=True
+        [Text] name='_Definições' aid='' cls='TextBlock' enabled=True
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Últimos projectos abertos' aid='RecentProjects' cls='MenuItem' enabled=True
+        [Text] name='Ú_ltimos projectos abertos' aid='' cls='TextBlock' enabled=True
+      [Separator] name='' aid='' cls='Separator' enabled=False
+      [MenuItem] name='Sair' aid='CloseApplication' cls='MenuItem' enabled=True
+        [Text] name='_Sair' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Editar' aid='Edit' cls='MenuItem' enabled=True
+      [Text] name='_Editar' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Visão' aid='View' cls='MenuItem' enabled=True
+      [Text] name='_Visão' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='?' aid='Help' cls='MenuItem' enabled=True
+      [Text] name='_?' aid='' cls='TextBlock' enabled=True
+  [Custom] name='' aid='_this' cls='MenuAdButton' enabled=True
+    [Button] name='' aid='MenuAd_LumsearchMainPage' cls='Button' enabled=True
+      [Image] name='' aid='' cls='Image' enabled=True
+      [Text] name='Luminaire Finder' aid='' cls='TextBlock' enabled=True
+    [Separator] name='' aid='' cls='Separator' enabled=False
+  [Custom] name='' aid='LoginBadge' cls='LoginBadge' enabled=True
+    [Button] name='' aid='_toggleButton' cls='Button' enabled=True
+      [Text] name='Logado em' aid='' cls='TextBlock' enabled=True
+      [Image] name='' aid='_image' cls='Image' enabled=True
+  [Custom] name='' aid='ModeSelectionControl' cls='ModeSelectionControl' enabled=True
+    [Tab] name='' aid='ModeSelectionTabControl' cls='ModeSelectionTabControl' enabled=True
+      [Custom] name='' aid='CommandButtonsControl' cls='CommandButtonsControl' enabled=True
+        [Button] name='Salvar' aid='Save' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [Button] name='Desfazer' aid='Undo' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [Button] name='Refazer' aid='Redo' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+      [Custom] name='' aid='' cls='StartModeControl' enabled=True
+        [Group] name='Novidades' aid='' cls='Expander' enabled=True
+          [Separator] name='' aid='separator' cls='Separator' enabled=False
+          [Button] name='Novidades' aid='Novidades_Header' cls='Button' enabled=True
+            [Text] name='Novidades' aid='' cls='TextBlock' enabled=True
+          [Custom] name='' aid='_this' cls='NewsStreamControl' enabled=True
+            [List] name='' aid='_listBox' cls='ListBox' enabled=True
+              [ListItem] name='Dial.Dialux.Advertisement.ViewModels.NewsItemViewModel' aid='' cls='ListBoxItem' enabled=True
+                [Text] name='Novidades DIALux' aid='' cls='TextBlock' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+                [Text] name='DIALux' aid='' cls='TextBlock' enabled=True
+                [Text] name='09/10/2026' aid='' cls='TextBlock' enabled=True
+                [Text] name='' aid='_sponsoredText' cls='TextBlock' enabled=True
+                [Text] name='How will sustainability performance change lighting design?' aid='' cls='TextBlock' enabled=True
+                [Text] name='Embodied carbon, lifetime and circularity are becoming part of the design conver' aid='' cls='TextBlock' enabled=True
+                [Text] name='Abrir no navegador' aid='' cls='TextBlock' enabled=True
+                [Image] name='' aid='newsImage' cls='Image' enabled=True
+              [ListItem] name='Dial.Dialux.Advertisement.ViewModels.NewsItemViewModel' aid='' cls='ListBoxItem' enabled=True
+                [Text] name='Novidades DIALux' aid='' cls='TextBlock' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+                [Text] name='DIALux' aid='' cls='TextBlock' enabled=True
+                [Text] name='17/09/2026' aid='' cls='TextBlock' enabled=True
+                [Text] name='' aid='_sponsoredText' cls='TextBlock' enabled=True
+                [Text] name='DIALux Bridge for Revit (included in DIALux Pro)' aid='' cls='TextBlock' enabled=True
+                [Text] name='DIALux Bridge for Revit is here! Transfer lighting models from DIALux to Revit i' aid='' cls='TextBlock' enabled=True
+                [Text] name='Abrir no navegador' aid='' cls='TextBlock' enabled=True
+                [Image] name='' aid='newsImage' cls='Image' enabled=True
+        [Custom] name='' aid='_this' cls='DialuxEvoText' enabled=True
+        [Custom] name='' aid='_this' cls='DefaultElementControl' enabled=True
+          [Group] name='Criar novo projecto' aid='' cls='GroupBox' enabled=True
+            [Text] name='Criar novo projecto' aid='' cls='TextBlock' enabled=True
+            [Button] name='StartNewProject' aid='StartNewProject' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Planeamento de áreas externas e edificações' aid='' cls='TextBlock' enabled=True
+            [Button] name='StartImportPlan' aid='StartImportPlan' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Plano de importação' aid='' cls='TextBlock' enabled=True
+            [Button] name='StartImportIfc' aid='StartImportIfc' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Importar IFC' aid='' cls='TextBlock' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='StartRoomPlanning' aid='StartRoomPlanning' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Planeamento de ambientes' aid='' cls='TextBlock' enabled=True
+            [Button] name='StartStreet' aid='StartStreet' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Iluminação de rua' aid='' cls='TextBlock' enabled=True
+          [Group] name='' aid='' cls='GroupBox' enabled=True
+            [Edit] name='' aid='SearchTextBox' cls='TextBox' enabled=True
+            [Image] name='' aid='searchImage' cls='Image' enabled=True
+            [Text] name='Procurar' aid='searchInfoText' cls='Text' enabled=True
+              [Text] name='Procurar' aid='' cls='TextBlock' enabled=True
+            [Text] name='Editar projecto existente' aid='' cls='TextBlock' enabled=True
+            [Button] name='Carregar projecto...' aid='LoadProjectButton' cls='Button' enabled=True
+              [Text] name='Carregar projecto...' aid='' cls='TextBlock' enabled=True
+            [Button] name='' aid='LoadProject' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='sinop ultimo' aid='' cls='TextBlock' enabled=True
+            [Button] name='' aid='LoadProject' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='sinop ultimoo' aid='' cls='TextBlock' enabled=True
+            [Button] name='' aid='LoadProject' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='sinop ultimoo2' aid='' cls='TextBlock' enabled=True
+          [Group] name='Outros temas' aid='_sizeGiver' cls='GroupBox' enabled=True
+            [Text] name='Outros temas' aid='' cls='TextBlock' enabled=True
+            [Button] name='GoToManufacturerButton' aid='GoToManufacturerButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Selecionar as suas marcas' aid='' cls='TextBlock' enabled=True
+            [Button] name='GoToAcademyButton' aid='GoToAcademyButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Academy' aid='' cls='TextBlock' enabled=True
+            [Button] name='GoToKnowledgeBaseButton' aid='GoToKnowledgeBaseButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Knowledge base' aid='' cls='TextBlock' enabled=True
+            [Button] name='GoToYouTubeButton' aid='GoToYouTubeButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='YouTube' aid='' cls='TextBlock' enabled=True
+            [Button] name='GoToYoukuButton' aid='GoToYoukuButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Text] name='Youku' aid='' cls='TextBlock' enabled=True
+          [Button] name='' aid='BannerButton' cls='Button' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+  [StatusBar] name='' aid='MainStatusBar' cls='StatusBar' enabled=True
+    [Custom] name='' aid='_this' cls='PoweredByEvoControl' enabled=True
+      [Custom] name='' aid='_this' cls='DialuxEvoText' enabled=True
+    [Custom] name='' aid='_this' cls='UserLogStatusBarIndicator' enabled=True
+      [Button] name='' aid='ToggleButtonShowUserLogPopup' cls='Button' enabled=True
+        [Text] name='1 nova mensagem' aid='TextBlockNumberNewMessages' cls='TextBlock' enabled=True
