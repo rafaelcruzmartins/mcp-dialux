@@ -102,18 +102,31 @@ def find(parent: BaseWrapper, aid: str | None = None, name: str | None = None,
     return None
 
 
+def walk(parent: BaseWrapper, max_nodes: int = 20000):
+    """Breadth-first walk over children() (raw view; descendants() misses nodes in DIALux)."""
+    queue = [parent]
+    n = 0
+    while queue and n < max_nodes:
+        el = queue.pop(0)
+        try:
+            kids = el.children()
+        except Exception:  # noqa: BLE001
+            kids = []
+        for k in kids:
+            n += 1
+            yield k
+            queue.append(k)
+
+
 def find_all(parent: BaseWrapper, aid: str | None = None, name: str | None = None,
              ctype: str | None = None, cls: str | None = None) -> list[BaseWrapper]:
     """All descendants matching the given criteria (exact match)."""
-    kw = {"control_type": ctype} if ctype else {}
-    try:
-        cands = parent.descendants(**kw)
-    except Exception:  # noqa: BLE001
-        return []
     out = []
-    for el in cands:
+    for el in walk(parent):
         try:
             i = el.element_info
+            if ctype is not None and i.control_type != ctype:
+                continue
             if aid is not None and i.automation_id != aid:
                 continue
             if name is not None and (i.name or "") != name:

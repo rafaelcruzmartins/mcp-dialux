@@ -1,0 +1,277 @@
+=== WINDOW '' aid='' cls='Popup'
+[Window] name='' aid='' cls='Popup' enabled=True
+  [Custom] name='' aid='_toastContainer' cls='UserLogToastContainer' enabled=True
+    [Image] name='' aid='_imageLogLevel' cls='Image' enabled=True
+    [Text] name=' ' aid='' cls='TextBlock' enabled=True
+      [Button] name='Aprende mais' aid='ExecuteMessageAction' cls='Button' enabled=True
+        [Text] name='Aprende mais' aid='' cls='TextBlock' enabled=True
+    [Text] name='A luminária importada é de um fabricante que ainda não é membro da DIALux. Desde' aid='' cls='TextBlock' enabled=True
+    [Button] name='' aid='OpenToast' cls='Button' enabled=True
+    [Button] name='Excluir' aid='Delete' cls='Button' enabled=True
+      [Image] name='' aid='' cls='Image' enabled=True
+=== WINDOW '%USERPROFILE%\\Documents\\03 - Pessoal\\Claude\\DIALux MCP\\dialux-mcp-server\\work\\teste1.evo* - DIALux evo 14.0  (64-Bit)' aid='MainWindow' cls='Window'
+[Window] name='%USERPROFILE%\\Documents\\03 - Pessoal\\Claude\\DIALux MCP\\dialux-mcp-serv' aid='MainWindow' cls='Window' enabled=True
+  [Window] name='Desbloquear não-membros' aid='ProVersionAdvertisingWindow' cls='Window' enabled=True
+    [TitleBar] name='' aid='' cls='' enabled=True
+      [Button] name='Fechar' aid='' cls='' enabled=True
+    [Text] name='Infelizmente, não podes importar essa luminária dessa forma.' aid='TextBlockAdvertisingTitle' cls='TextBlock' enabled=True
+    [Text] name='Na versão gratuita do DIALux evo, só pode utilizar as luminárias dos membros da ' aid='TextBlockAdvertisingDescription' cls='TextBlock' enabled=True
+    [Image] name='' aid='' cls='Image' enabled=True
+    [Image] name='' aid='' cls='Image' enabled=True
+    [Text] name='Aprende mais' aid='' cls='TextBlock' enabled=True
+      [Hyperlink] name='Aprende mais' aid='HyperLinkLearnMore' cls='Hyperlink' enabled=True
+    [Button] name='Compra agora' aid='ButtonBuyNow' cls='Button' enabled=True
+      [Text] name='' aid='' cls='Text' enabled=True
+        [Text] name='Compra agora' aid='' cls='TextBlock' enabled=True
+    [Text] name='Unlock Non-Members' aid='TextBlockTitleFeatureUnlockNonMembers' cls='TextBlock' enabled=True
+    [Text] name='Utiliza luminárias de fabricantes que não são membros da DIALux no teu projeto d' aid='' cls='TextBlock' enabled=True
+    [Text] name='Esta função pode ser adquirida separadamente e também faz parte da versão DIALux' aid='' cls='TextBlock' enabled=True
+    [Image] name='' aid='' cls='Image' enabled=True
+    [Button] name='Vai para DIALux Pro' aid='ButtonGoToDialuxPro' cls='Button' enabled=True
+      [Text] name='' aid='' cls='Text' enabled=True
+        [Text] name='Vai para DIALux Pro' aid='' cls='TextBlock' enabled=True
+    [Text] name='Estás interessado em DIALux Pro?' aid='TextBlockTitleFeatureDxPro' cls='TextBlock' enabled=True
+    [Text] name='Importa modelos de edifícios diretamente de ficheiros IFC e inicia imediatamente' aid='' cls='TextBlock' enabled=True
+    [Text] name='Exporta a tua documentação para diferentes formatos de ficheiro (*.ppt, *.docx, ' aid='' cls='TextBlock' enabled=True
+    [Text] name='Cria o teu próprio layout para a documentação com o nosso editor e implementa o ' aid='' cls='TextBlock' enabled=True
+    [Text] name='Utiliza sem problemas luminárias de qualquer fabricante, sem limitações.' aid='' cls='TextBlock' enabled=True
+    [Button] name='Encontra a luminária' aid='ButtonStartLuminaireFinder' cls='Button' enabled=True
+      [Text] name='' aid='' cls='Text' enabled=True
+        [Text] name='Encontra a luminária' aid='' cls='TextBlock' enabled=True
+    [Text] name='Procura uma luminária de um membro DIALux?' aid='TextBlockTitleLuminaireFinder' cls='TextBlock' enabled=True
+    [Text] name='O DIALux Luminaire Finder oferece-te produtos de alta qualidade que podes import' aid='TextBlockDescriptionLuminaireFinder' cls='TextBlock' enabled=True
+    [Image] name='' aid='' cls='Image' enabled=True
+    [Text] name='O teu período de teste gratuito expirou. Se quiseres continuar a utilizar as fun' aid='TextBlockHintText' cls='TextBlock' enabled=True
+    [Button] name='Fechar' aid='ButtonClose' cls='Button' enabled=True
+      [Text] name='' aid='' cls='Text' enabled=True
+        [Text] name='Fechar' aid='' cls='TextBlock' enabled=True
+  [TitleBar] name='' aid='' cls='' enabled=True
+    [MenuBar] name='Sistema' aid='MenuBar' cls='' enabled=True
+      [MenuItem] name='Sistema' aid='' cls='' enabled=True
+    [Button] name='Minimizar' aid='' cls='' enabled=True
+    [Button] name='Restaurar' aid='' cls='' enabled=True
+    [Button] name='Fechar' aid='' cls='' enabled=True
+  [Menu] name='' aid='MainMenu' cls='Menu' enabled=True
+    [MenuItem] name='Ficheiro' aid='File' cls='MenuItem' enabled=True
+      [Text] name='_Ficheiro' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Editar' aid='Edit' cls='MenuItem' enabled=True
+      [Text] name='_Editar' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Goto' aid='MenuGotoConstructionMode' cls='MenuItem' enabled=True
+      [Text] name='Goto' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='Visão' aid='View' cls='MenuItem' enabled=True
+      [Text] name='_Visão' aid='' cls='TextBlock' enabled=True
+    [MenuItem] name='?' aid='Help' cls='MenuItem' enabled=True
+      [Text] name='_?' aid='' cls='TextBlock' enabled=True
+  [Custom] name='' aid='_this' cls='MenuAdButton' enabled=True
+    [Button] name='' aid='MenuAd_LumsearchMainPage' cls='Button' enabled=True
+      [Image] name='' aid='' cls='Image' enabled=True
+      [Text] name='Luminaire Finder' aid='' cls='TextBlock' enabled=True
+    [Separator] name='' aid='' cls='Separator' enabled=False
+  [Custom] name='' aid='LoginBadge' cls='LoginBadge' enabled=True
+    [Button] name='' aid='_toggleButton' cls='Button' enabled=True
+      [Text] name='Logado em' aid='' cls='TextBlock' enabled=True
+      [Image] name='' aid='_image' cls='Image' enabled=True
+  [Custom] name='' aid='ModeSelectionControl' cls='ModeSelectionControl' enabled=True
+    [Tab] name='' aid='ModeSelectionTabControl' cls='ModeSelectionTabControl' enabled=True
+      [Custom] name='' aid='CommandButtonsControl' cls='CommandButtonsControl' enabled=True
+        [Button] name='Salvar' aid='Save' cls='Button' enabled=True
+          [Image] name='' aid='' cls='Image' enabled=True
+        [Button] name='Desfazer' aid='Undo' cls='Button' enabled=True
+          [Image] name='' aid='' cls='Image' enabled=True
+        [Button] name='Refazer' aid='Redo' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+      [Custom] name='' aid='_this' cls='ToolSelectionControl' enabled=True
+        [Tab] name='' aid='_toolTabControl' cls='TabControl' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Luminaires.LuminaireArrangementTool' aid='LuminaireArrangementTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='' aid='hideToolsButton' cls='Button' enabled=True
+            [Custom] name='' aid='_this' cls='ToolPresenter' enabled=True
+              [Custom] name='' aid='_this' cls='ToolPartActions' enabled=True
+                [Button] name='' aid='aid_DrawRectangle' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Desenhar distribuição rectangular' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_DrawPolygon' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Desenhar distribuição poligonal' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_DrawCircle' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Desenhar distribuição circular' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_DrawLine' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Desenhar distribuição linaer' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_DrawPoint' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Posicionar luminária isolada' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_ArrangementFromSpace' cls='Button' enabled=True
+                  [Image] name='' aid='' cls='Image' enabled=True
+                  [Text] name='Distribuição automática para áreas' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='aid_StartChangePrototypeSelected' cls='Button' enabled=False
+                  [Image] name='' aid='' cls='Image' enabled=False
+                  [Text] name='Substituir luminárias seleccionadas' aid='' cls='TextBlock' enabled=False
+                [Button] name='' aid='aid_StartChangePrototypeAll' cls='Button' enabled=False
+                  [Image] name='' aid='' cls='Image' enabled=False
+                  [Text] name='Substituir todas as luminárias deste tipo' aid='' cls='TextBlock' enabled=False
+                [Button] name='' aid='VerboseActions' cls='Button' enabled=True
+                [Separator] name='' aid='' cls='Separator' enabled=False
+              [Text] name='Nem todas as ações estão disponíveis nos cenários de iluminação para quocientes ' aid='' cls='TextBlock' enabled=True
+              [Text] name='Nem todas as ações estão disponíveis na visão de edifício.' aid='' cls='TextBlock' enabled=True
+              [Group] name='Luminária activa' aid='ToolPartLuminaireType' cls='Expander' enabled=True
+                [Separator] name='' aid='separator' cls='Separator' enabled=False
+                [Button] name='Luminária activa' aid='Luminária activa_Header' cls='Button' enabled=True
+                  [Text] name='Luminária activa' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='' cls='Button' enabled=True
+                [Text] name='Dialight' aid='' cls='TextBlock' enabled=True
+                [Text] name='Vigilant LED High Efficientcy High Bay 39500 Lumens, Medium Distribution, Clear ' aid='' cls='TextBlock' enabled=True
+                [Text] name='VEU2MN2JxxxxxN' aid='' cls='TextBlock' enabled=True
+                [Custom] name='' aid='vendorIcon' cls='LuminairePictureControl' enabled=True
+                  [Image] name='' aid='_luminaireImage' cls='Image' enabled=True
+                [Custom] name='' aid='_control' cls='LuminairePictureControl' enabled=True
+                  [Image] name='' aid='_luminaireImage' cls='Image' enabled=True
+                [Custom] name='' aid='_control' cls='LuminairePictureControl' enabled=True
+                  [Image] name='' aid='_luminaireImage' cls='Image' enabled=True
+                [Text] name='0.405 x 0.405 x 0.079m' aid='_textBlock' cls='TextBlock' enabled=True
+                [Separator] name='' aid='' cls='Separator' enabled=False
+                [Text] name='Índice de tipos de luminárias' aid='' cls='TextBlock' enabled=True
+                [Edit] name='' aid='LuminaireIndex' cls='TextBox' enabled=True
+                [Text] name='' aid='' cls='Text' enabled=True
+                [Text] name='Designação no esquema DWG' aid='' cls='TextBlock' enabled=True
+                [Edit] name='' aid='LuminaireLabel' cls='TextBox' enabled=True
+                [Text] name='' aid='' cls='Text' enabled=True
+                [Separator] name='' aid='' cls='Separator' enabled=False
+                [Button] name='' aid='BrandCatalogButton' cls='Button' enabled=True
+                  [Text] name='Vai para a marca' aid='' cls='TextBlock' enabled=True
+                [Button] name='' aid='LuminaireCatalogButton' cls='Button' enabled=True
+                  [Text] name='Abre a lista de luminárias' aid='' cls='TextBlock' enabled=True
+              [Text] name='Pelo menos uma das luzes selecionadas está atribuída como luz de emergência excl' aid='' cls='TextBlock' enabled=True
+              [Separator] name='' aid='' cls='Separator' enabled=False
+              [Group] name='Dados técnicos de iluminação' aid='ToolPartLuminaireTechnicalData' cls='Expander' enabled=True
+                [Separator] name='' aid='separator' cls='Separator' enabled=False
+                [Button] name='Dados técnicos de iluminação' aid='Dados técnicos de iluminação_Header' cls='Button' enabled=True
+                  [Text] name='Dados técnicos de iluminação' aid='' cls='TextBlock' enabled=True
+                [Text] name='Fluxo luminoso da luminária' aid='' cls='TextBlock' enabled=True
+                [Text] name='lm' aid='' cls='TextBlock' enabled=True
+                [Edit] name='' aid='TotalLuminaireFlux_1' cls='TextBox' enabled=True
+                [Text] name='Potência de ligação' aid='' cls='TextBlock' enabled=True
+                [Text] name='W' aid='' cls='TextBlock' enabled=True
+                [Edit] name='' aid='Load_1' cls='TextBox' enabled=True
+                [Text] name='Rendimento luminoso' aid='' cls='TextBlock' enabled=True
+                [Text] name='lm / W' aid='' cls='TextBlock' enabled=True
+                [Edit] name='' aid='LightEfficiency_1' cls='TextBox' enabled=True
+                [Text] name='Equipagem' aid='' cls='TextBlock' enabled=True
+                [Text] name='Alterar' aid='ChangeEquipmentHyperlink_1' cls='TextBlock' enabled=True
+                  [Hyperlink] name='Alterar' aid='' cls='Hyperlink' enabled=True
+                [ComboBox] name='' aid='EquipmentsComboBox_1_0' cls='ComboBox' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Lighting.LampTool' aid='LampTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Construction.Joint.JointTool' aid='JointTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Lighting.FilterTool' aid='FilterTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Lighting.LightSceneTool' aid='LightSceneTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Construction.Spaces.SpaceTool' aid='SpaceTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Lighting.MaintenanceFactor.MaintenanceFactorTool' aid='MaintenanceFactorTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Lighting.EnergyPerformance.EnergyPerformanceTool' aid='EnergyPerformanceTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Construction.Separator' aid='Separator' cls='TabItem' enabled=False
+            [Separator] name='' aid='separator' cls='Separator' enabled=False
+          [TabItem] name='Dial.Dialux.InteractionTools.EmergencyLighting.EmergencyLightingLuminaireArrange' aid='EmergencyLightingLuminaireArrangementTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Construction.Separator' aid='Separator' cls='TabItem' enabled=False
+            [Separator] name='' aid='separator' cls='Separator' enabled=False
+          [TabItem] name='Dial.Dialux.InteractionTools.Construction.Dimensioning.LinesAndTextTool' aid='LinesAndTextTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.MultiSelection.MultiSelectionTool' aid='MultiSelectionTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Views.ViewTool' aid='ViewTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+          [TabItem] name='Dial.Dialux.InteractionTools.Project.ProjectTreeTool' aid='ProjectTreeTool' cls='TabItem' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+      [Custom] name='' aid='CalculationButtons' cls='CalculationCommandButtonsControl' enabled=True
+        [Button] name='' aid='CommonCalculationButton' cls='Button' enabled=False
+          [Text] name='Cálculo' aid='CalculationCommandText' cls='TextBlock' enabled=False
+        [Button] name='' aid='CalculationButtonStart' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [ComboBox] name='' aid='LightSceneCalculationModeComboBox' cls='ComboBox' enabled=True
+        [Button] name='' aid='EnergyEstimationCalculationButtonStart' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [Button] name='' aid='DiscardResultsButton' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [ComboBox] name='' aid='DiscardResultsComboBox' cls='ComboBox' enabled=True
+        [Custom] name='' aid='CalculationButtons' cls='CalculationOptionsPopupControl' enabled=True
+          [Button] name='' aid='CalculationButtonShowCalcOptionsDropDown' cls='Button' enabled=True
+            [Image] name='' aid='' cls='Image' enabled=True
+      [Custom] name='' aid='WorkspaceSelectionControl' cls='WorkspaceSelectionControl' enabled=True
+        [ComboBox] name='' aid='WorkspaceSelectionComboBox' cls='ComboBox' enabled=True
+      [Custom] name='' aid='LightSceneSelectionControl' cls='LightSceneSelectionControl' enabled=True
+        [Button] name='' aid='ShowLightSceneTexturesButton' cls='Button' enabled=False
+          [Image] name='' aid='' cls='Image' enabled=False
+        [ComboBox] name='' aid='LightSceneSelectionComboBox' cls='ComboBox' enabled=True
+      [Custom] name='' aid='CommandButtonsControl' cls='SideToolButtonsControl' enabled=True
+        [Button] name='' aid='ShowResultsMonitor' cls='Button' enabled=True
+          [Image] name='' aid='' cls='Image' enabled=True
+        [Button] name='' aid='ShowNewsStream' cls='Button' enabled=True
+          [Image] name='' aid='' cls='Image' enabled=True
+      [Custom] name='' aid='' cls='CadModeControl' enabled=True
+        [Custom] name='' aid='CadModeSubControl' cls='CadModeSubControl' enabled=True
+          [Group] name='' aid='' cls='GroupBox' enabled=True
+            [Button] name='' aid='ToggleButton_SiteContextSelectionButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='' aid='ToggleButton_SiteSpaceContextSelectionButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='' aid='ToggleButton_BuildingContextSelectionButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='' aid='ToggleButton_StoreyContextSelectionButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Button] name='' aid='ToggleButton_RoomContextSelectionButton' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+              [Menu] name='' aid='' cls='Menu' enabled=True
+                [MenuItem] name='' aid='_menuItemControl' cls='MenuItem' enabled=True
+            [Separator] name='' aid='' cls='Separator' enabled=False
+            [Custom] name='' aid='DrawingSelectionControl' cls='DrawingSelectionControl' enabled=True
+              [Button] name='' aid='ShowDwgPlansToggleButton' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='DwgPlansListPopupToggleButton' cls='Button' enabled=True
+            [Separator] name='' aid='' cls='Separator' enabled=False
+            [Custom] name='' aid='_this' cls='ViewTypeSelectionControl' enabled=True
+              [Button] name='' aid='buttonRenderer' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='buttonFloorPlan' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='buttonFrontView' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='buttonRightView' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='buttonBackView' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='buttonLeftView' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='_moreViewButton' cls='Button' enabled=True
+            [Custom] name='' aid='' cls='CadCommandsControl' enabled=True
+              [Separator] name='' aid='' cls='Separator' enabled=False
+              [Button] name='' aid='CadCommandButtonViewAll' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='CadCommandButtonViewSelected' cls='Button' enabled=False
+                [Image] name='' aid='' cls='Image' enabled=False
+              [Button] name='' aid='CadCommandButtonMeasuringTape' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+              [Button] name='' aid='CadCommandButtonAdjustReferenceCoordSys' cls='Button' enabled=True
+                [Image] name='' aid='' cls='Image' enabled=True
+            [Separator] name='' aid='' cls='Separator' enabled=False
+            [Button] name='' aid='ViewOptions' cls='Button' enabled=True
+              [Image] name='' aid='' cls='Image' enabled=True
+            [Custom] name='' aid='' cls='WindowSelectionControl' enabled=True
+            [Custom] name='' aid='_renderView' cls='RenderView' enabled=True
+              [Pane] name='' aid='_renderHost' cls='WindowsFormsHost' enabled=True
+                [Pane] name='' aid='' cls='WindowsForms10.Window.8.app.0.27354f7_r3_ad1' enabled=True
+            [Button] name='' aid='_toggleButton' cls='Button' enabled=True
+  [StatusBar] name='' aid='MainStatusBar' cls='StatusBar' enabled=True
+    [Custom] name='' aid='_this' cls='PoweredByEvoControl' enabled=True
+      [Custom] name='' aid='_this' cls='DialuxEvoText' enabled=True
+    [Image] name='' aid='UnsavedChangesImage' cls='Image' enabled=True
+    [Custom] name='' aid='_this' cls='UserLogStatusBarIndicator' enabled=True
+      [Button] name='' aid='ToggleButtonShowUserLogPopup' cls='Button' enabled=True
+        [Text] name='2 mensagens novas' aid='TextBlockNumberNewMessages' cls='TextBlock' enabled=True
+    [Custom] name='' aid='_this' cls='SelectionInfoStatusBarControl' enabled=True

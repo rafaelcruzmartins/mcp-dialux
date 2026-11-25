@@ -10,9 +10,8 @@ points to / that are known to import into DIALux evo:
 Both write ``STFF=1.0.5``, an INI-like file with sections ``[VERSION]``,
 ``[PROJECT]`` and one ``[ROOM.Rn]`` per room, numbers with a dot as decimal
 separator (en-US), lengths in metres and the room contour as ``x y`` pairs.
-Details that differ between sources (reflectance scale, wall keys) were
-settled by importing test files into DIALux evo 14 and reading the values
-back; see docs/stf-format.md.
+What DIALux evo 14 actually reads was checked by importing test files and
+reading values back from the UI; see docs/stf-format.md.
 """
 from __future__ import annotations
 
@@ -25,8 +24,9 @@ STF_VERSION = "1.0.5"
 PROGNAME = "dialux-mcp-server"
 PROGVERS = "0.1"
 
-# How reflectances are written. DIALux evo 14 reads them as percent
-# (verified on import, see docs/stf-format.md).
+# How reflectances are written. Percent follows the public sample files;
+# whether evo 14 applies them on import is NOT yet verified (the UI panel does
+# not read back per-room values) - to be checked in the PDF report.
 REFLECTANCE_AS_PERCENT = True
 
 
