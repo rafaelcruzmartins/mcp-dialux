@@ -56,3 +56,12 @@ Abas: `LuminaireArrangementTool`, `LampTool`, `JointTool`, `FilterTool`, `LightS
 
 ## Ainda não mapeado (bloqueado pela licença, ver README)
 Parâmetros do arranjo automático, cálculo/progresso, Documentação (`OutputMode`) e exportação de PDF.
+
+## Achados da sessão com DIALux Pro (teste de 30 dias)
+- Com o Pro, `ImportLuminaire` aceita o LDT genérico. A luminária aparece no catálogo como `<nome> (<código>)_LuminaireCatalogItem` (aberto por `MenuGotoShowLuminaireCatalogPopup`).
+- Menu **Goto** (`MenuGotoConstructionMode`): `MenuGotoShowProjectTreeTool`, `MenuGotoShowSpaceTool`, `MenuGotoShowLuminaireArrangementTool`, `MenuGotoShowLuminaireCatalogPopup`, `MenuGotoShowCalculationObjectTool`, `MenuGotoShowOutputTreeTool`, `MenuGotoShowMaterialTool`, ... As abas de modo (`Dial.Dialux.InteractionModes.*`) nem sempre aparecem na árvore UIA; o Goto é mais estável.
+- `aid_ArrangementFromSpace` cria na hora um arranjo de campo no ambiente selecionado. Painel: `ElementCountX/Y`, `TargetIlluminance` + `ResetFieldToPlanningTarget` (300 lx → 2×2, estimativa de 314 lx), `MountingHeight_Value`, `LightPointHeight_Value`, `GlobalSpaceComboBox`, `NumberOfCurrentLuminairesObjectsTextBlock`, `TotalLuminaireFlux_1`, `Load_1`.
+- Modais `InformationBox` (Edit com o texto, botões `Yes`/`No`/`Cancel`): "Guardar alterações em ...?" ao importar com projeto aberto, e o lembrete de autosave "não foi guardado desde 5 minutos". Resposta sempre `No`.
+- Cálculo: `CalculationButtonStart` dispara; o popup de opções mostra "Cálculo a funcionar...". **Nos dois testes (2 salas e 1 sala, LDT genérico) terminou com "Ocorreu um erro no cálculo"** (lista de mensagens: `ToggleButtonShowUserLogPopup` › `_listBox`). O DIALux não grava log em disco. Causa ainda não isolada; o próximo teste é com luminária de membro (Philips WT210C).
+- Problema em aberto: depois de importar um novo STF, o painel da aba de luminárias pode ficar vazio (só `hideToolsButton`); invocar esse botão não restaurou o conteúdo.
+- Nomes da árvore: STF com 1 sala → "Edifício <sala> › Andar <sala>"; com várias → "STF Building › STF Storey". Localizar o ambiente por `_Salas e espaços_<nome>`.
