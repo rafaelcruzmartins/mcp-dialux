@@ -67,12 +67,28 @@ def _process_ids() -> list[int]:
     return pids
 
 
+_main_hwnd: int | None = None
+
+
+def _wrap_hwnd(hwnd: int) -> BaseWrapper:
+    from pywinauto.controls.uiawrapper import UIAWrapper
+    from pywinauto.uia_element_info import UIAElementInfo
+    return UIAWrapper(UIAElementInfo(hwnd))
+
+
 def main_window(timeout: float = 0) -> BaseWrapper:
-    """Return the DIALux main window wrapper or raise."""
+    """Return the DIALux main window wrapper or raise (handle cached, revalidated on each call)."""
+    import win32gui
+
     def find():
+        global _main_hwnd
+        if _main_hwnd and win32gui.IsWindow(_main_hwnd) and "DIALux" in win32gui.GetWindowText(_main_hwnd):
+            return _wrap_hwnd(_main_hwnd)
+        _main_hwnd = None
         for pid in _process_ids():
             for w in Desktop(backend="uia").windows(process=pid):
                 if w.element_info.automation_id == MAIN_AID:
+                    _main_hwnd = w.handle
                     return w
         return None
 
@@ -119,9 +135,41 @@ def walk(parent: BaseWrapper, max_nodes: int = 20000):
             queue.append(k)
 
 
+def _native_find_all(parent: BaseWrapper, aid, name, ctype, cls) -> list[BaseWrapper] | None:
+    """UIA FindAll on the raw tree with server-side property conditions (fast)."""
+    from pywinauto.controls.uiawrapper import UIAWrapper
+    from pywinauto.uia_defines import IUIA
+    from pywinauto.uia_element_info import UIAElementInfo
+
+    iuia = IUIA()
+    conds = []
+    if aid is not None:
+        conds.append(iuia.iuia.CreatePropertyCondition(iuia.UIA_dll.UIA_AutomationIdPropertyId, aid))
+    if name is not None:
+        conds.append(iuia.iuia.CreatePropertyCondition(iuia.UIA_dll.UIA_NamePropertyId, name))
+    if cls is not None:
+        conds.append(iuia.iuia.CreatePropertyCondition(iuia.UIA_dll.UIA_ClassNamePropertyId, cls))
+    if ctype is not None:
+        conds.append(iuia.iuia.CreatePropertyCondition(iuia.UIA_dll.UIA_ControlTypePropertyId,
+                                                       iuia.known_control_types[ctype]))
+    if not conds:
+        return None
+    cond = conds[0]
+    for c in conds[1:]:
+        cond = iuia.iuia.CreateAndCondition(cond, c)
+    arr = parent.element_info.element.FindAll(iuia.tree_scope["descendants"], cond)
+    return [UIAWrapper(UIAElementInfo(arr.GetElement(i))) for i in range(arr.Length)]
+
+
 def find_all(parent: BaseWrapper, aid: str | None = None, name: str | None = None,
              ctype: str | None = None, cls: str | None = None) -> list[BaseWrapper]:
     """All descendants matching the given criteria (exact match)."""
+    try:
+        fast = _native_find_all(parent, aid, name, ctype, cls)
+        if fast is not None:
+            return fast
+    except Exception as e:  # noqa: BLE001
+        log.warning("FindAll nativo falhou (%s); usando varredura", e)
     out = []
     for el in walk(parent):
         try:

@@ -54,8 +54,47 @@ Abas: `LuminaireArrangementTool`, `LampTool`, `JointTool`, `FilterTool`, `LightS
 `aid_StartChangePrototypeSelected`, `aid_StartChangePrototypeAll`; grupo `ToolPartLuminaireType`
 (luminária ativa).
 
-## Ainda não mapeado (bloqueado pela licença, ver README)
-Parâmetros do arranjo automático, cálculo/progresso, Documentação (`OutputMode`) e exportação de PDF.
+## Contexto de ambiente (essencial)
+A barra da vista tem `ToggleButton_RoomContextSelectionButton` › `_menuItemControl` (ExpandCollapse) com itens
+`MenuItem_ToggleButton_RoomContextSelectionButton_<n>` (um por ambiente; o nome está no `Text` filho).
+**A distribuição automática (`aid_ArrangementFromSpace`) e o painel de refletâncias do ambiente agem sobre o
+ambiente de contexto, não sobre a seleção da árvore.** Os itens não expõem estado "marcado"; o arranjo recém-criado
+assume como altura de montagem o pé-direito do ambiente de contexto, e é assim que a ferramenta confere.
+
+## Seleção e abas de ferramenta
+- O menu Goto (e trocar de modo) **descarta a seleção** atual. Dentro do modo, selecione a aba da ferramenta
+  diretamente (SelectionItem), o que mantém o ambiente selecionado.
+- O WPF só monta o conteúdo do painel quando a seleção da aba muda: se a aba já está selecionada e vazia,
+  selecione a aba da árvore (`ProjectTreeTool`) e volte.
+
+## Documentação (`View` › `ShowOutputMode`)
+- `aid_RenderProjectDocument` ("Exibir toda a documentação") gera o documento completo; o total aparece em
+  `buttonPageGoTo` ("Página 1 de N"). A lista `FilterTreeListBox` só muda a pré-visualização.
+- Exportar: `MenuSaveAs` › `MenuItem` › `ExportFormatMenuItem_Pdf` (também `_Word2007`, `_Ppt2007`, `_Excel2007`)
+  → janela "Ficheiro Adobe PDF - Configuração de exportação" (`checkBoxOpenAfterExport`, `buttonOk`) → diálogo
+  Salvar do Windows (`1001` = nome, `1` = Salvar). **O diálogo Salvar ignora ValuePattern** (grava com o nome
+  padrão em Downloads): é preciso digitar no campo.
+
+## Cálculo
+`CalculationButtonStart`; terminou quando `DiscardResultsButton` fica habilitado (7 a 15 s nos testes). Falha
+aparece só como mensagem "Ocorreu um erro no cálculo" (`ToggleButtonShowUserLogPopup` › `_listBox`), sem log em
+disco. Causa encontrada: LDT com `Isym=1`.
+
+## Modais `InformationBox`
+| Texto | Resposta do servidor |
+|---|---|
+| "Guardar alterações em …?" (ao importar/abrir/novo com projeto alterado) | Não |
+| "O projecto não foi guardado desde N Minutos. Guardar agora?" | Não |
+| "Os resultados tornam-se inválidos. Continuar?" (alterar após calcular) | Sim, só em ferramentas que alteram o projeto |
+
+## Catálogo de luminárias (`MenuGotoShowLuminaireCatalogPopup`)
+`LuminairePopupControl`; itens `<nome> (<código>)_LuminaireCatalogItem`, ordenados pelo uso mais recente.
+`ProjectLuminaireFilterToggleButton`: estado 1 lista recentes/importadas, 0 só as já colocadas no projeto. Selecionar
+um item define a luminária ativa; o popup não fecha por UIA (não atrapalha).
+
+## Desempenho
+`Desktop().windows()` leva cerca de 1 s. O handle da janela principal fica em cache, e as buscas usam o `FindAll`
+nativo da UIA com condições de propriedade (visão completa). As abas de modo não aparecem no `FindAll`; use o Goto.
 
 ## Achados da sessão com DIALux Pro (teste de 30 dias)
 - Com o Pro, `ImportLuminaire` aceita o LDT genérico. A luminária aparece no catálogo como `<nome> (<código>)_LuminaireCatalogItem` (aberto por `MenuGotoShowLuminaireCatalogPopup`).

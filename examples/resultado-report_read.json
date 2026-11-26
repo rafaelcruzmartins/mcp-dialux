@@ -1,0 +1,92 @@
+{
+  "pdf": "work/e2e-<data>/relatorio.pdf",
+  "project": "Exemplo 2 salas",
+  "pages": 38,
+  "rooms": [
+    {
+      "room": "Sala A",
+      "Em_lx": 397.0,
+      "Emin_lx": 234.0,
+      "Emax_lx": 486.0,
+      "U0": 0.59,
+      "g2": 0.48,
+      "UGR": null,
+      "luminaires": [
+        {
+          "quantity": 4,
+          "description": "dialux-mcp- GEN-PNL- Generico Painel LED 4000lm 32W",
+          "power_w": 32.0,
+          "flux_lm": 3996.0,
+          "ugr": null
+        }
+      ],
+      "luminaire_count": 4,
+      "power_w": 128.0,
+      "area_m2": 24.0,
+      "clear_height_m": 2.8,
+      "mounting_height_m": 2.8,
+      "workplane_height_m": 0.75,
+      "maintenance_factor": 0.8,
+      "reflectances_pct": {
+        "ceiling": 70.0,
+        "walls": 60.0,
+        "floor": 20.0
+      },
+      "pages": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "complete": true
+    },
+    {
+      "room": "Sala B",
+      "Em_lx": 327.0,
+      "Emin_lx": 178.0,
+      "Emax_lx": 465.0,
+      "U0": 0.54,
+      "g2": 0.38,
+      "UGR": null,
+      "luminaires": [
+        {
+          "quantity": 3,
+          "description": "dialux-mcp- GEN-PNL- Generico Painel LED 4000lm 32W",
+          "power_w": 32.0,
+          "flux_lm": 3996.0,
+          "ugr": null
+        }
+      ],
+      "luminaire_count": 3,
+      "power_w": 96.0,
+      "area_m2": 20.0,
+      "clear_height_m": 3.0,
+      "mounting_height_m": 3.0,
+      "workplane_height_m": 0.8,
+      "maintenance_factor": 0.8,
+      "reflectances_pct": {
+        "ceiling": 70.0,
+        "walls": 60.0,
+        "floor": 20.0
+      },
+      "pages": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "complete": true
+    }
+  ],
+  "notes": [
+    "UGR fica null quando o DIALux não o calcula (coluna RUG com '–')."
+  ]
+}

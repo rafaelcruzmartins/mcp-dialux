@@ -1,9 +1,38 @@
-﻿{
+{
   "name": "Exemplo 2 salas",
   "rooms": [
-    {"name": "Sala A", "polygon": [[0,0],[6,0],[6,4],[0,4]], "height": 2.8, "working_plane": 0.75,
-     "reflectances": {"ceiling": 0.73, "walls": 0.52, "floor": 0.21}, "maintenance_factor": 0.67},
-    {"name": "Sala B", "polygon": [[6,0],[11,0],[11,4],[6,4]], "height": 3.0, "working_plane": 0.8,
-     "reflectances": {"ceiling": 0.7, "walls": 0.5, "floor": 0.2}}
+    {
+      "name": "Sala A",
+      "polygon": [
+        [0, 0],
+        [6, 0],
+        [6, 4],
+        [0, 4]
+      ],
+      "height": 2.8,
+      "working_plane": 0.75,
+      "reflectances": {
+        "ceiling": 0.7,
+        "walls": 0.6,
+        "floor": 0.2
+      },
+      "maintenance_factor": 0.67
+    },
+    {
+      "name": "Sala B",
+      "polygon": [
+        [6, 0],
+        [11, 0],
+        [11, 4],
+        [6, 4]
+      ],
+      "height": 3.0,
+      "working_plane": 0.8,
+      "reflectances": {
+        "ceiling": 0.7,
+        "walls": 0.6,
+        "floor": 0.2
+      }
+    }
   ]
 }

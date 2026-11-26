@@ -136,6 +136,9 @@ def _ready():
 
 # ---------------------------------------------------------------- menus & navigation
 def _find_menu_item(aid: str):
+    e = ui.find(M(), aid=aid, ctype="MenuItem", visible=None)  # menu popups live under the main window
+    if e is not None:
+        return e
     for win in ui.windows_of_dialux():
         e = ui.find(win, aid=aid, ctype="MenuItem", visible=None)
         if e is not None:
@@ -403,8 +406,20 @@ def set_reflectances(name: str, ceiling: float, walls: float, floor: float) -> d
                                 5, "botão Aplicar habilitado"), f"aplicar refletâncias {name}")
         time.sleep(1.0)
         dismiss_modals(1.0)
-    return {"room": name, "ceiling_pct": ceiling * 100, "walls_pct": walls * 100, "floor_pct": floor * 100,
-            "verify": "conferir em report_read (reflectances_pct)"}
+    out = {"room": name, "walls_pct": walls * 100, "verify": "conferir em report_read (reflectances_pct)",
+           "warnings": []}
+    # Verified in evo 14 (report): this command changes only the room's walls. Ceiling and floor of
+    # STF rooms are storey slabs; their reflectance is only editable by painting in the 3D view.
+    if abs(ceiling - DEFAULT_CEILING) > 1e-6 or abs(floor - DEFAULT_FLOOR) > 1e-6:
+        out["warnings"].append(
+            f"Teto/piso pedidos {ceiling * 100:.0f}/{floor * 100:.0f} % NÃO foram aplicados: no DIALux evo 14 só "
+            f"se alteram pintando superfícies na vista 3D (não automatizável). Ficam no padrão "
+            f"{DEFAULT_CEILING * 100:.0f}/{DEFAULT_FLOOR * 100:.0f} %.")
+    out["warnings"].append("Paredes compartilhadas entre ambientes ficam com o último valor aplicado.")
+    return out
+
+
+DEFAULT_CEILING, DEFAULT_FLOOR = 0.70, 0.20
 
 
 def room_properties(name: str) -> dict:
@@ -521,8 +536,10 @@ def set_room_context(name: str) -> None:
     """Make `name` the active room context (used by 'Distribuição automática' and room reflectances)."""
     dismiss_modals()
     btn = ui.find(M(), aid="ToggleButton_RoomContextSelectionButton", visible=None)
-    if btn is None:
-        raise DialuxUIError("Seletor de contexto de ambiente não encontrado na vista.")
+    if btn is None:  # e.g. in Documentation mode: go back to a mode with the CAD view
+        goto("luminaires", ready=False)
+        btn = ui.wait_until(lambda: ui.find(M(), aid="ToggleButton_RoomContextSelectionButton", visible=None),
+                            15, "seletor de contexto de ambiente")
     mi = ui.find(btn, aid="_menuItemControl", visible=None)
     mi.iface_expand_collapse.Expand()
 

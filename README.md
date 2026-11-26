@@ -1,4 +1,4 @@
-# mcp-dialux
+﻿# mcp-dialux
 
 Servidor MCP (Python, FastMCP, stdio) que permite a um agente operar o **DIALux evo** no Windows
 para cálculos luminotécnicos: gerar a geometria dos ambientes, importar luminárias, distribuir
@@ -79,8 +79,12 @@ contra o JSON de entrada. Saídas em `work/e2e-<data>/`.
 
 - **Só funciona com a interface em português** (alguns textos e nomes de nós da árvore são localizados,
   ex.: "Salas e espaços", "Plano de uso", "Resumo").
-- **STF no evo 14:** um único pé-direito para todas as salas e refletâncias ignoradas; o servidor
-  corrige ambos pela interface depois da importação. Portas, janelas e luminárias do STF não são
+- **STF no evo 14:** um único pé-direito para todas as salas e refletâncias ignoradas. O servidor
+  corrige o pé-direito e a refletância das **paredes** pela interface depois da importação.
+- **Refletância de teto e piso não é automatizável:** no evo 14 teto e piso de ambientes vindos de STF são
+  lajes do pavimento, e só se alteram pintando as superfícies na vista 3D (não acessível por UIA). Ficam no
+  padrão do DIALux (70 % / 20 %); as ferramentas avisam quando o JSON pede outro valor. Paredes compartilhadas
+  entre ambientes ficam com o último valor aplicado. Portas, janelas e luminárias do STF não são
   importadas pelo evo. Detalhes em [docs/stf-format.md](docs/stf-format.md).
 - **LDT com `Isym=1`** (simetria rotacional compacta) faz o cálculo do evo 14 falhar. O gerador
   `scripts/make_generic_ldt.py` escreve a matriz completa.
