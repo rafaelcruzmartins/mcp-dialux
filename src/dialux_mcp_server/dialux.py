@@ -197,9 +197,22 @@ def file_dialog_save(path: Path, what: str, timeout: float = 20) -> None:
     edit = ui.find(dlg, aid="1001", ctype="Edit") or ui.find(dlg, aid="1148", ctype="Edit")
     if edit is None:
         raise DialuxUIError("Campo de nome do diálogo Salvar não encontrado.")
-    ui.set_text(edit, str(path), "nome do arquivo")
+    # The save dialog ignores ValuePattern.SetValue (it keeps its default name),
+    # so type into the located edit control.
+    edit.set_focus()
+    edit.type_keys("^a{BACKSPACE}", set_foreground=False)
+    edit.type_keys(_escape_keys(str(path)), with_spaces=True, set_foreground=False)
+    got = ui.get_text(edit)
+    if got.strip() != str(path):
+        raise DialuxUIError(f"Diálogo Salvar: digitei {str(path)!r} mas o campo mostra {got!r}.")
+    log.info("save dialog name = %s", got)
     ui.invoke(ui.find(dlg, aid="1", ctype="Button"), "Salvar")
     ui.wait_until(lambda: ui.find(M(), cls="#32770", ctype="Window") is None, 15, "fechar diálogo salvar")
+
+
+def _escape_keys(s: str) -> str:
+    """Escape pywinauto send_keys specials."""
+    return "".join("{" + c + "}" if c in "+^%~(){}[]" else c for c in s)
 
 
 # ---------------------------------------------------------------- project tree
