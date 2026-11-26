@@ -1,2 +1,4 @@
-def main() -> None:
-    print("Hello from dialux-mcp-server!")
+﻿from .server import main
+
+__all__ = ["main"]
+

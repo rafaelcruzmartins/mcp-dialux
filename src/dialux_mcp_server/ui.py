@@ -1,4 +1,4 @@
-"""Low-level UI Automation helpers for DIALux evo (pywinauto, backend "uia").
+﻿"""Low-level UI Automation helpers for DIALux evo (pywinauto, backend "uia").
 
 Rules: controls are found by AutomationId / name / control type only (never by
 screen coordinates); every wait is a polled condition with a timeout.
@@ -28,6 +28,7 @@ if not log.handlers:
     h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     log.addHandler(h)
     log.setLevel(logging.INFO)
+    log.propagate = False
 
 
 class DialuxUIError(RuntimeError):

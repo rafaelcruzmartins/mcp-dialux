@@ -25,7 +25,7 @@ L = [
     "5",            # 7 Dg
     "GEN-001",      # 8 measurement report
     name,           # 9 luminaire name
-    "GEN-PNL-600",  # 10 luminaire number
+    "GEN-PNL-600-S0",  # 10 luminaire number
     out.name,       # 11 file name
     "2026-11-25",   # 12 date/user
     "600", "600", "50",  # 13-15 luminaire L, W, H (mm)

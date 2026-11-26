@@ -1,4 +1,4 @@
-"""High-level DIALux evo 14 operations built on ui.py (see docs/ui-map.md)."""
+﻿"""High-level DIALux evo 14 operations built on ui.py (see docs/ui-map.md)."""
 from __future__ import annotations
 
 import re
@@ -27,6 +27,21 @@ def info_box_text(box) -> str:
     return ui.get_text(e) if e else ""
 
 
+_ALLOW_INVALIDATE = False
+
+
+class modifying:
+    """Context manager: inside it, "Os resultados tornam-se inválidos. Continuar?" is answered Sim."""
+
+    def __enter__(self):
+        global _ALLOW_INVALIDATE
+        _ALLOW_INVALIDATE = True
+
+    def __exit__(self, *exc):
+        global _ALLOW_INVALIDATE
+        _ALLOW_INVALIDATE = False
+
+
 def dismiss_modals(timeout: float = 0.0) -> list[str]:
     """Answer known modal prompts safely. Never saves. Raises on license walls.
 
@@ -42,6 +57,13 @@ def dismiss_modals(timeout: float = 0.0) -> list[str]:
             txt = info_box_text(box)
             if "Guardar" in txt or "guardado" in txt:
                 ui.invoke(ui.find(box, aid="No"), f"Não (prompt: {txt!r})")
+                handled.append(txt)
+                time.sleep(0.4)
+                continue
+            if "inválidos" in txt:
+                if not _ALLOW_INVALIDATE:
+                    raise DialuxUIError(f"DIALux pede confirmação: {txt!r} (operação de leitura não altera o projeto).")
+                ui.invoke(ui.find(box, aid="Yes"), f"Sim (prompt: {txt!r})")
                 handled.append(txt)
                 time.sleep(0.4)
                 continue
@@ -137,43 +159,45 @@ def menu(*path: str) -> None:
 TOOLS = {
     # goto menu aid, tool tab aid, control that proves the panel is shown
     "tree": ("MenuGotoShowProjectTreeTool", "ProjectTreeTool", "ProjectTreeToolSearch"),
-    "spaces": ("MenuGotoShowSpaceTool", "SpaceTool", None),
+    "spaces": ("MenuGotoShowSpaceTool", "SpaceTool", "WorkplaneHeightDoubleBox"),
     "luminaires": ("MenuGotoShowLuminaireArrangementTool", "LuminaireArrangementTool", "aid_ArrangementFromSpace"),
     "materials": ("MenuGotoShowMaterialTool", "MaterialTool", "aid_ChangedSpaceSurfaceRho"),
-    "output": ("MenuGotoShowOutputTreeTool", "OutputTreeTool", None),
+    "output": ("MenuGotoShowOutputTreeTool", "OutputTreeTool", "aid_RenderProjectDocument"),
     "calcobjects": ("MenuGotoShowCalculationObjectTool", "CalculationObjectTool", None),
 }
 
 
-def goto(tool: str, timeout: float = 20):
+def _tab(aid: str):
+    return ui.find(M(), aid=aid, ctype="TabItem", visible=None)
+
+
+def goto(tool: str, timeout: float = 20, ready: bool = True):
+    """Show a tool panel.
+
+    Inside the current mode the tool tab is selected directly: the Goto menu (and other
+    tools) drop the current object selection. The Goto menu is used only to switch modes.
+    WPF builds a panel's content only on a selection change, so an already-selected tab
+    with empty content is re-selected via the project-tree tab (which keeps the selection).
+    """
     menu_aid, tab_aid, ready_aid = TOOLS[tool]
-    menu("MenuGotoConstructionMode", menu_aid)
 
     def shown():
-        w = M()
-        if ready_aid:
-            return ui.find(w, aid=ready_aid) is not None
-        tab = ui.find(w, aid=tab_aid, ctype="TabItem", visible=None)
-        return tab is not None and _is_selected(tab)
+        if not ready or not ready_aid:
+            t = _tab(tab_aid)
+            return t is not None and _is_selected(t)
+        return ui.find(M(), aid=ready_aid) is not None
 
-    try:
-        ui.wait_until(shown, timeout / 3, f"ferramenta {tool}")
+    if _tab(tab_aid) is None:  # tool belongs to another mode
+        menu("MenuGotoConstructionMode", menu_aid)
+        ui.wait_until(lambda: _tab(tab_aid) is not None, timeout / 2, f"modo da ferramenta {tool}")
+    if shown():
         return
-    except DialuxUIError:
-        pass
-    # WPF realizes a tool panel's content only on a selection change: select a
-    # sibling tool tab, then the wanted one again.
-    tab = ui.find(M(), aid=tab_aid, ctype="TabItem", visible=None)
-    if tab is None:
-        raise DialuxUIError(f"Aba da ferramenta {tab_aid} não encontrada.")
-    sibling = next((t for t in tab.parent().children()
-                    if t.element_info.control_type == "TabItem" and t.is_enabled()
-                    and t.element_info.automation_id not in (tab_aid, "Separator")), None)
-    if sibling is not None:
-        sibling.iface_selection_item.Select()
+    t = _tab(tab_aid)
+    if _is_selected(t) and tab_aid != "ProjectTreeTool" and _tab("ProjectTreeTool") is not None:
+        _tab("ProjectTreeTool").iface_selection_item.Select()
         time.sleep(0.8)
-    ui.find(M(), aid=tab_aid, ctype="TabItem", visible=None).iface_selection_item.Select()
-    ui.wait_until(shown, timeout * 2 / 3, f"ferramenta {tool}")
+    _tab(tab_aid).iface_selection_item.Select()
+    ui.wait_until(shown, timeout, f"ferramenta {tool}")
 
 
 def _is_selected(el) -> bool:
@@ -271,3 +295,383 @@ def same_number(a: str, b: float, tol: float = 1e-3) -> bool:
         return abs(float(str(a).replace(",", ".")) - float(b)) <= tol
     except ValueError:
         return False
+
+
+# ================================================================ operations
+def _wait_project_loaded(expect_in_title: str | None, timeout: float = 120) -> dict:
+    def ok():
+        dismiss_modals()
+        w = M()
+        if expect_in_title and expect_in_title.lower() not in w.window_text().lower():
+            return False
+        return ui.find(w, aid="ModeSelectionTabControl") is not None and \
+            ui.find(w, aid="CalculationButtonStart", visible=None) is not None
+    ui.wait_until(ok, timeout, f"projeto carregado ({expect_in_title or 'novo'})")
+    time.sleep(1.5)
+    return status()
+
+
+def new_project() -> dict:
+    w = M()
+    if ui.find(w, aid="StartNewProject", visible=None) is not None:
+        ui.invoke(ui.find(w, aid="StartNewProject", visible=None), "novo projeto (tela inicial)")
+    else:
+        menu("File", "New")
+    return _wait_project_loaded(None)
+
+
+def open_project(path: Path) -> dict:
+    path = Path(path).resolve()
+    if not path.exists() or path.suffix.lower() != ".evo":
+        raise DialuxUIError(f"Arquivo .evo não encontrado: {path}")
+    menu("File", "OpenProject")
+    dismiss_modals(1.0)
+    file_dialog_open(path, "abrir .evo")
+    return _wait_project_loaded(path.stem)
+
+
+def save_as(path: Path) -> dict:
+    """Save the project under a NEW name (never overwrites)."""
+    path = Path(path).resolve()
+    if path.suffix.lower() != ".evo":
+        raise DialuxUIError("O arquivo deve ter extensão .evo")
+    if path.exists():
+        raise DialuxUIError(f"{path} já existe; escolha outro nome (o servidor nunca sobrescreve .evo).")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    menu("File", "SaveAs")
+    file_dialog_save(path, "salvar .evo")
+    ui.wait_until(lambda: path.exists(), 120, f"arquivo {path.name} gravado")
+    ui.wait_until(lambda: (st := parse_title(M().window_text()))["project"] and
+                  Path(st["project"]).resolve() == path and not st["unsaved"], 60, "título com o novo arquivo")
+    return status()
+
+
+def import_stf(path: Path, heights: dict[str, float] | None = None,
+               reflectances: dict[str, tuple[float, float, float]] | None = None) -> dict:
+    """Import STF as a new project, then fix per-room heights (evo applies one height to all)
+    and reflectances (evo 14 ignores the STF reflectance keys)."""
+    with modifying():
+        res = _import_stf(path, heights)
+        for name, (c, w, f) in (reflectances or {}).items():
+            res.setdefault("reflectances", []).append(set_reflectances(name, c, w, f))
+        return res
+
+
+def _import_stf(path: Path, heights: dict[str, float] | None = None) -> dict:
+    path = Path(path).resolve()
+    if not path.exists():
+        raise DialuxUIError(f"STF não encontrado: {path}")
+    menu("File", "Import", "ImportStf")
+    dismiss_modals(1.0)
+    file_dialog_open(path, "STF")
+    _wait_project_loaded(path.stem)
+    rs = rooms()
+    result = {"project": status()["project"], "rooms": []}
+    for name in rs:
+        info = room_properties(name)
+        want = (heights or {}).get(name)
+        if want is not None and not same_number(info["height"], want):
+            got = set_field("Height", f"{want:.3f}", f"pé-direito {name}", commit_to="ObjectName")
+            if not same_number(got, want):
+                raise DialuxUIError(f"{name}: pé-direito ficou {got} em vez de {want}.")
+            info = room_properties(name)
+        result["rooms"].append(info)
+    return result
+
+
+def set_reflectances(name: str, ceiling: float, walls: float, floor: float) -> dict:
+    """Room surface reflectances (fractions 0..1) via Materiais > 'Alterar graus de reflexão...'.
+
+    The panel acts on the active room context; it does not read back the room's state, so
+    the final check is the PDF report (report_read -> reflectances_pct).
+    """
+    vals = {"CeilingRho_Value": ceiling, "WallRho_Value": walls, "FloorRho_Value": floor}
+    for k, v in vals.items():
+        if not 0 <= v <= 1:
+            raise DialuxUIError(f"refletância {k}={v} fora de 0..1")
+    with modifying():
+        set_room_context(name)
+        goto("materials")
+        ui.invoke(ui.find(M(), aid="aid_ChangedSpaceSurfaceRho"), "alterar graus de reflexão do ambiente")
+        ui.wait_until(lambda: ui.find(M(), aid="CeilingRho_Value"), 10, "painel de refletâncias")
+        order = list(vals)
+        for i, (aid, v) in enumerate(vals.items()):
+            got = set_field(aid, f"{v * 100:.1f}", aid, commit_to=order[(i + 1) % len(order)])
+            if not same_number(got, v * 100, 0.05):
+                raise DialuxUIError(f"{name}: {aid} ficou {got} em vez de {v * 100:.1f}.")
+        ui.invoke(ui.wait_until(lambda: (b := ui.find(M(), aid="ApplyRhoButton")) and b.is_enabled() and b,
+                                5, "botão Aplicar habilitado"), f"aplicar refletâncias {name}")
+        time.sleep(1.0)
+        dismiss_modals(1.0)
+    return {"room": name, "ceiling_pct": ceiling * 100, "walls_pct": walls * 100, "floor_pct": floor * 100,
+            "verify": "conferir em report_read (reflectances_pct)"}
+
+
+def room_properties(name: str) -> dict:
+    select_room(name)
+    goto("spaces")
+    w = M()
+    get = lambda a: ui.get_text(e) if (e := ui.find(w, aid=a, visible=None)) else None  # noqa: E731
+    if get("ObjectName") != name:
+        raise DialuxUIError(f"Painel de espaço mostra {get('ObjectName')!r}, esperado {name!r}.")
+    return {"name": name, "height": get("Height"), "working_plane": get("WorkplaneHeightDoubleBox"),
+            "maintenance_factor": get("MaintenanceFactor")}
+
+
+def set_maintenance_factor(mf: float, room_names: list[str] | None = None) -> list[dict]:
+    if not 0.01 < mf <= 1:
+        raise DialuxUIError("Fator de manutenção deve estar em (0.01, 1].")
+    out = []
+    with modifying():
+        for name in room_names or list(rooms()):
+            room_properties(name)
+            got = set_field("MaintenanceFactor", f"{mf:.2f}", f"FM {name}", commit_to="ObjectName")
+            dismiss_modals(1.0)
+            if not same_number(got, mf, 0.005):
+                raise DialuxUIError(f"{name}: FM ficou {got} em vez de {mf}.")
+            out.append(room_properties(name))
+    return out
+
+
+def ldt_identity(path: Path) -> dict:
+    """Name / number from an EULUMDAT (lines 9-10) or IES ([LUMINAIRE]/[LUMCAT])."""
+    raw = Path(path).read_bytes().decode("latin-1", errors="replace").splitlines()
+    if Path(path).suffix.lower() == ".ldt":
+        return {"manufacturer": raw[0].strip(), "name": raw[8].strip(), "number": raw[9].strip()}
+    kw = {}
+    for line in raw:
+        m = re.match(r"\[(\w+)\]\s*(.*)", line.strip())
+        if m:
+            kw[m.group(1).upper()] = m.group(2).strip()
+    return {"manufacturer": kw.get("MANUFAC", ""), "name": kw.get("LUMINAIRE", ""), "number": kw.get("LUMCAT", "")}
+
+
+def catalog_items() -> list[str]:
+    menu("MenuGotoConstructionMode", "MenuGotoShowLuminaireCatalogPopup")
+    pop = ui.wait_until(lambda: ui.find(M(), aid="LuminairePopupControl", visible=None), 10, "catálogo de luminárias")
+    # ProjectLuminaireFilterToggleButton: state 1 lists recent/imported luminaires, 0 only placed ones
+    flt = ui.find(pop, aid="ProjectLuminaireFilterToggleButton", visible=None)
+    if flt is not None and flt.iface_toggle.CurrentToggleState != 1:
+        flt.iface_toggle.Toggle()
+    time.sleep(1.0)
+    return [i.element_info.automation_id[: -len("_LuminaireCatalogItem")] for i in ui.find_all(M(), ctype="ListItem")
+            if (i.element_info.automation_id or "").endswith("_LuminaireCatalogItem")]
+
+
+def activate_luminaire(name: str) -> str:
+    """Pick a luminaire from the catalog popup by (prefix of) its catalog name; returns full name."""
+    items = catalog_items()
+    match = [i for i in items if i == name] or [i for i in items if i.startswith(name)]
+    if not match:
+        raise DialuxUIError(f"Luminária {name!r} não está no catálogo. Disponíveis: {items}")
+    if len(set(match)) > 1:
+        raise DialuxUIError(f"Nome {name!r} ambíguo no catálogo: {sorted(set(match))}. Use o nome completo.")
+    if len(match) > 1:
+        log.warning("catálogo tem %d itens chamados %r; usando o primeiro (mais recente)", len(match), match[0])
+    # first match = most recent (the list is ordered by last use)
+    el = next(i for i in ui.find_all(M(), ctype="ListItem")
+              if i.element_info.automation_id == match[0] + "_LuminaireCatalogItem")
+    ui.invoke(el, f"luminária {match[0]}")
+    ui.wait_until(lambda: _is_selected(el), 5, f"luminária {match[0]} selecionada no catálogo")
+    try:  # the popup stays open until the main window gets focus; harmless either way
+        ui.find(M(), aid="ModeSelectionTabControl").set_focus()
+    except Exception:  # noqa: BLE001
+        pass
+    return match[0]
+
+
+def import_luminaire(path: Path) -> dict:
+    path = Path(path).resolve()
+    if path.suffix.lower() not in (".ldt", ".ies") or not path.exists():
+        raise DialuxUIError(f"Arquivo LDT/IES não encontrado: {path}")
+    ident = ldt_identity(path)
+    with modifying():
+        return _import_luminaire(path, ident)
+
+
+def _import_luminaire(path: Path, ident: dict) -> dict:
+    menu("File", "Import", "ImportLuminaire")
+    dismiss_modals(1.0)
+    file_dialog_open(path, "luminária")
+    time.sleep(1.5)
+    dismiss_modals(1.0)
+    items = catalog_items()
+    hits = [i for i in items if ident["name"] and i.startswith(ident["name"])]
+    if not hits:
+        raise DialuxUIError(f"Luminária {ident['name']!r} não apareceu no catálogo após importar. Catálogo: {items}")
+    full = activate_luminaire(hits[0])
+    return {"catalog_name": full, **ident}
+
+
+def _arr_get(aid: str) -> str:
+    e = ui.find(M(), aid=aid, visible=None)
+    return ui.get_text(e) if e else ""
+
+
+def place_luminaires(room: str, luminaire: str, mounting_height: float | None = None,
+                     target_lux: float | None = None, count_x: int | None = None,
+                     count_y: int | None = None) -> dict:
+    if (target_lux is None) == (count_x is None or count_y is None):
+        raise DialuxUIError("Informe target_lux OU count_x e count_y.")
+    with modifying():
+        return _place(room, luminaire, mounting_height, target_lux, count_x, count_y)
+
+
+def set_room_context(name: str) -> None:
+    """Make `name` the active room context (used by 'Distribuição automática' and room reflectances)."""
+    dismiss_modals()
+    btn = ui.find(M(), aid="ToggleButton_RoomContextSelectionButton", visible=None)
+    if btn is None:
+        raise DialuxUIError("Seletor de contexto de ambiente não encontrado na vista.")
+    mi = ui.find(btn, aid="_menuItemControl", visible=None)
+    mi.iface_expand_collapse.Expand()
+
+    def item():
+        for x in ui.find_all(M(), ctype="MenuItem"):
+            if (x.element_info.automation_id or "").startswith("MenuItem_ToggleButton_RoomContextSelectionButton_") \
+                    and any(t.element_info.name == name for t in ui.walk(x)):
+                return x
+        return None
+
+    it = ui.wait_until(item, 5, f"ambiente {name} no seletor de contexto")
+    ui.invoke(it, f"contexto {name}")
+    time.sleep(1.0)
+    dismiss_modals()
+
+
+def _place(room, luminaire, mounting_height, target_lux, count_x, count_y) -> dict:
+    goto("luminaires", ready=False)  # switch to Light mode first (drops selection)
+    room_h = float(room_properties(room)["height"])
+    full = activate_luminaire(luminaire)
+    set_room_context(room)
+    goto("luminaires")
+    active = list(ui.texts(ui.find(M(), aid="ToolPartLuminaireType", visible=None)))
+    if not any(full.startswith(t) or t.startswith(full.split(" (")[0]) for t in active if t):
+        raise DialuxUIError(f"Luminária ativa não é {full!r}: {active[:3]}")
+    ui.invoke(ui.find(M(), aid="aid_ArrangementFromSpace"), f"distribuição automática em {room}")
+    dismiss_modals(1.5)
+    ui.wait_until(lambda: ui.find(M(), aid="TargetIlluminance", visible=None), 15, "painel do arranjo")
+    # a new field arrangement takes the context room's ceiling as mounting height
+    default_h = _arr_get("MountingHeight_Value")
+    if not same_number(default_h, room_h, 0.002):
+        raise DialuxUIError(f"Arranjo parece ter sido criado em outro ambiente: altura padrão {default_h} m, "
+                            f"pé-direito de {room} = {room_h} m. Desfaça (Ctrl+Z) e verifique o contexto.")
+    if mounting_height is not None:
+        got = set_field("MountingHeight_Value", f"{mounting_height:.3f}", "altura de montagem",
+                        commit_to="ArrangementObjectName")
+        if not same_number(got, mounting_height):
+            raise DialuxUIError(f"Altura de montagem ficou {got} em vez de {mounting_height}.")
+    if target_lux is not None:
+        set_field("TargetIlluminance", f"{target_lux:g}", "iluminância alvo", commit_to="EstimatedIlluminance")
+        ui.invoke(ui.find(M(), aid="ResetFieldToPlanningTarget", visible=None), "reaplicar alvo")
+        time.sleep(1.5)
+        if not same_number(_arr_get("TargetIlluminance"), target_lux, 0.5):
+            raise DialuxUIError(f"Alvo ficou {_arr_get('TargetIlluminance')} lx.")
+    else:
+        for aid, v in (("ElementCountX", count_x), ("ElementCountY", count_y)):
+            got = set_field(aid, str(v), aid, commit_to="ArrangementObjectName")
+            if not same_number(got, v):
+                raise DialuxUIError(f"{aid} ficou {got} em vez de {v}.")
+    time.sleep(0.8)
+    w = M()
+    cnt_txt = ui.find(w, aid="NumberOfCurrentLuminairesObjectsTextBlock", visible=None).element_info.name
+    n = int(re.search(r"\d+", cnt_txt).group()) if re.search(r"\d+", cnt_txt) else None
+    res = {"room": room, "luminaire": full, "count": n,
+           "count_x": _arr_get("ElementCountX"), "count_y": _arr_get("ElementCountY"),
+           "estimated_lux": _arr_get("EstimatedIlluminance"),
+           "mounting_height": _arr_get("MountingHeight_Value"),
+           "flux_lm": _arr_get("TotalLuminaireFlux_1"), "power_w": _arr_get("Load_1")}
+    if not n:
+        raise DialuxUIError(f"Arranjo sem luminárias: {res}")
+    return res
+
+
+def _messages() -> list[str]:
+    ui.invoke(ui.find(M(), aid="ToggleButtonShowUserLogPopup", visible=None), "abrir mensagens")
+    lb = ui.wait_until(lambda: ui.find(M(), aid="_listBox", ctype="List", visible=None), 5, "lista de mensagens")
+    msgs = [" ".join(t.element_info.name for t in ui.walk(it) if t.element_info.control_type == "Text"
+                     and t.element_info.name.strip()) for it in lb.children()]
+    c = ui.find(M(), aid="Close", ctype="Button")
+    if c is not None:
+        ui.invoke(c, "fechar mensagens")
+    return msgs
+
+
+def calculate(timeout: float = 1800) -> dict:
+    w = M()
+    start = ui.find(w, aid="CalculationButtonStart", visible=None)
+    if start is None or not start.is_enabled():
+        raise DialuxUIError("Botão de cálculo indisponível (há luminárias no projeto?).")
+    before = _messages()
+    t0 = time.monotonic()
+    ui.invoke(start, "calcular")
+
+    def done():
+        dismiss_modals()
+        w = M()
+        if ui.find(w, aid="DiscardResultsButton", visible=None).is_enabled():
+            return "ok"
+        txt = ui.find(w, aid="TextBlockNumberNewMessages", visible=None).element_info.name
+        if not txt.startswith("0 "):
+            return "msg"
+        return None
+
+    r = ui.wait_until(done, timeout, "fim do cálculo", interval=2)
+    new = [m for m in _messages() if m not in before]
+    errors = [m for m in new if "erro" in m.lower()]
+    if errors or r != "ok":
+        if r == "msg" and not errors:
+            r = ui.wait_until(lambda: "ok" if ui.find(M(), aid="DiscardResultsButton", visible=None).is_enabled()
+                              else None, timeout, "fim do cálculo", interval=2)
+        else:
+            raise DialuxUIError(f"Cálculo falhou: {errors or new}")
+    return {"seconds": round(time.monotonic() - t0, 1), "messages": new}
+
+
+def export_report(out_path: Path, timeout: float = 600) -> dict:
+    out_path = Path(out_path).resolve()
+    if out_path.suffix.lower() != ".pdf":
+        raise DialuxUIError("Saída deve ser .pdf")
+    if out_path.exists():
+        raise DialuxUIError(f"{out_path} já existe; escolha outro nome.")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    menu("View", "ShowOutputMode")
+    btn = ui.wait_until(lambda: ui.find(M(), aid="aid_RenderProjectDocument", visible=None), 30, "modo Documentação")
+    ui.invoke(btn, "exibir toda a documentação")
+
+    def pages():
+        e = ui.find(M(), aid="buttonPageGoTo", visible=None)
+        m = re.search(r"de (\d+)", e.element_info.name) if e else None
+        return int(m.group(1)) if m else 0
+
+    last, stable_since = -1, time.monotonic()
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        dismiss_modals()
+        n = pages()
+        if n != last:
+            last, stable_since = n, time.monotonic()
+        elif n > 2 and time.monotonic() - stable_since > 6:
+            break
+        time.sleep(1)
+    else:
+        raise DialuxUIError("Documento não terminou de ser gerado.")
+    item = ui.find(ui.find(M(), aid="MenuSaveAs", visible=None), ctype="MenuItem", visible=None)
+    item.iface_expand_collapse.Expand()
+    time.sleep(0.6)
+    pdf_item = ui.wait_until(lambda: _find_menu_item("ExportFormatMenuItem_Pdf"), 10, "opção PDF")
+    ui.invoke(pdf_item, "exportar PDF")
+    cfg = ui.wait_until(lambda: next((x for x in ui.find_all(M(), ctype="Window")
+                                      if ui.find(x, aid="checkBoxOpenAfterExport", visible=None)), None),
+                        20, "configuração de exportação PDF")
+    cb = ui.find(cfg, aid="checkBoxOpenAfterExport", visible=None)
+    if cb.iface_toggle.CurrentToggleState == 1:
+        cb.iface_toggle.Toggle()
+    ui.invoke(ui.find(cfg, aid="buttonOk", visible=None), "OK exportação")
+    file_dialog_save(out_path, "PDF")
+    ui.wait_until(lambda: out_path.exists() and out_path.stat().st_size > 1000, timeout, f"PDF {out_path.name}")
+    size = -1
+    while out_path.stat().st_size != size:  # wait until the writer finishes
+        size = out_path.stat().st_size
+        time.sleep(1.5)
+    return {"pdf": str(out_path), "pages": last, "bytes": size}
