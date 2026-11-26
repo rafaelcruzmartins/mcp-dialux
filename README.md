@@ -91,10 +91,16 @@ contra o JSON de entrada. Saídas em `work/e2e-<data>/`.
 - **Catálogo de luminárias:** a seleção é por nome; com nomes repetidos nos recentes usa-se o mais
   recente. Prefira nomes/códigos únicos.
 - **UGR** só aparece no relatório quando o DIALux o calcula (coluna RUG); caso contrário é `null`.
-- **IFC** (importação disponível no Pro) ainda não tem ferramenta.
+- **IFC:** em desenvolvimento. Nos testes, `Ficheiro › Importar › Ficheiro IFC` não importou o IFC de
+  exemplo (`examples/ifc/`, gerado por `scripts/make_test_ifc.py`) e o DIALux não deu mensagem.
 - O servidor responde **Não** a "Guardar alterações?" e ao lembrete de autosave: alterações não salvas
   do projeto aberto são descartadas ao importar/abrir/criar. Use `dialux_save_as` antes.
 - Uma operação por vez (a interface é única); não use o DIALux manualmente durante uma chamada.
+- **Uso em segundo plano:** o DIALux precisa estar aberto, mas pode ficar atrás de outras janelas ou em
+  outro monitor. O servidor não usa o teclado físico: os caminhos nos diálogos vão por mensagens
+  `WM_CHAR` direto para o controle. Confirmar valores em campos do WPF exige mover o foco dentro do
+  DIALux, então a janela dele pode vir para frente por um instante. Se estiver minimizada, é restaurada
+  sem ativar no início de cada ferramenta.
 - A vista 3D/planta não é acessível por UIA; nada do fluxo depende dela.
 
 Mapa dos controles da interface: [docs/ui-map.md](docs/ui-map.md).

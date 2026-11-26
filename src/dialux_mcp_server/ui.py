@@ -100,6 +100,25 @@ def main_window(timeout: float = 0) -> BaseWrapper:
     return wait_until(find, timeout, "janela principal do DIALux")
 
 
+def ensure_restored() -> bool:
+    """If the DIALux window is minimized, restore it without activating it (WPF does not lay out
+    panels while minimized). Returns True when it had to restore."""
+    import win32con
+    import win32gui
+
+    try:
+        hwnd = main_window().handle
+    except DialuxUIError:
+        return False
+    if win32gui.IsIconic(hwnd):
+        log.info("janela do DIALux minimizada: restaurando sem ativar")
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOWNOACTIVATE)
+        wait_until(lambda: not win32gui.IsIconic(hwnd), 10, "restaurar janela do DIALux")
+        time.sleep(1.0)
+        return True
+    return False
+
+
 def app() -> Application:
     pids = _process_ids()
     if not pids:
@@ -227,6 +246,27 @@ def set_text(el: BaseWrapper, text: str, what: str) -> None:
     else:
         raise DialuxUIError(f"Campo '{what}' não aceita ValuePattern.")
     got = get_text(el)
+    if got.strip() != text.strip():
+        raise DialuxUIError(f"Campo '{what}': escrevi {text!r} mas li {got!r}.")
+
+
+def set_text_win32(el: BaseWrapper, text: str, what: str) -> None:
+    """Write into a native Win32 edit by messages sent to that control (no focus, no physical keyboard).
+
+    The text is cleared with WM_SETTEXT and then sent as WM_CHAR messages: the Windows save dialog
+    ignores a bare WM_SETTEXT (and ValuePattern) and would keep its default file name.
+    """
+    import win32con
+    import win32gui
+
+    hwnd = el.handle
+    if not hwnd:
+        raise DialuxUIError(f"Campo '{what}' não tem janela Win32 (mensagens indisponíveis).")
+    log.info("WM_CHAR %s = %r", what, text)
+    win32gui.SendMessage(hwnd, win32con.WM_SETTEXT, 0, "")
+    for ch in text:
+        win32gui.SendMessage(hwnd, win32con.WM_CHAR, ord(ch), 0)
+    got = get_text(el)  # GetWindowText does not read another process's edit content
     if got.strip() != text.strip():
         raise DialuxUIError(f"Campo '{what}': escrevi {text!r} mas li {got!r}.")
 

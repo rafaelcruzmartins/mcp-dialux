@@ -1,4 +1,4 @@
-"""MCP server (stdio) that drives DIALux evo through UI Automation."""
+﻿"""MCP server (stdio) that drives DIALux evo through UI Automation."""
 from __future__ import annotations
 
 import functools
@@ -10,7 +10,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from . import dialux, report, stf
+from . import dialux, report, stf, ui
 from .ui import DialuxUIError, log
 
 mcp = FastMCP(
@@ -33,6 +33,8 @@ def tool(fn):
             t0 = time.monotonic()
             log.info("TOOL %s %s", fn.__name__, json.dumps(kwargs, ensure_ascii=False, default=str))
             try:
+                if fn.__name__ not in ("stf_generate", "report_read"):
+                    ui.ensure_restored()
                 out = fn(*args, **kwargs)
             except (DialuxUIError, stf.StfError, FileNotFoundError, ValueError) as e:
                 log.error("TOOL %s falhou: %s", fn.__name__, e)

@@ -213,7 +213,7 @@ def _is_selected(el) -> bool:
 # ---------------------------------------------------------------- file dialog
 def file_dialog_open(path: Path, what: str, timeout: float = 20) -> None:
     dlg = ui.wait_until(lambda: ui.find(M(), cls="#32770", ctype="Window"), timeout, f"diálogo de arquivo ({what})")
-    ui.set_text(ui.find(dlg, aid="1148", ctype="Edit"), str(path), "nome do arquivo")
+    _dialog_filename(dlg, path, ("1148",))
     ui.invoke(ui.find(dlg, aid="1", ctype="Button"), "Abrir")
     # dialog must close; an error popup of the shell dialog would keep it open
     ui.wait_until(lambda: ui.find(M(), cls="#32770", ctype="Window") is None, 15, "fechar diálogo de arquivo")
@@ -221,20 +221,20 @@ def file_dialog_open(path: Path, what: str, timeout: float = 20) -> None:
 
 def file_dialog_save(path: Path, what: str, timeout: float = 20) -> None:
     dlg = ui.wait_until(lambda: ui.find(M(), cls="#32770", ctype="Window"), timeout, f"diálogo salvar ({what})")
-    edit = ui.find(dlg, aid="1001", ctype="Edit") or ui.find(dlg, aid="1148", ctype="Edit")
-    if edit is None:
-        raise DialuxUIError("Campo de nome do diálogo Salvar não encontrado.")
-    # The save dialog ignores ValuePattern.SetValue (it keeps its default name),
-    # so type into the located edit control.
-    edit.set_focus()
-    edit.type_keys("^a{BACKSPACE}", set_foreground=False)
-    edit.type_keys(_escape_keys(str(path)), with_spaces=True, set_foreground=False)
-    got = ui.get_text(edit)
-    if got.strip() != str(path):
-        raise DialuxUIError(f"Diálogo Salvar: digitei {str(path)!r} mas o campo mostra {got!r}.")
-    log.info("save dialog name = %s", got)
+    _dialog_filename(dlg, path, ("1001", "1148"))
     ui.invoke(ui.find(dlg, aid="1", ctype="Button"), "Salvar")
     ui.wait_until(lambda: ui.find(M(), cls="#32770", ctype="Window") is None, 15, "fechar diálogo salvar")
+
+
+def _dialog_filename(dlg, path: Path, aids: tuple[str, ...]) -> None:
+    """Put the file name into a Windows file dialog without keyboard or focus (WM_SETTEXT).
+
+    ValuePattern.SetValue is ignored by some of these dialogs (they keep their default name).
+    """
+    edit = next((e for a in aids if (e := ui.find(dlg, aid=a, ctype="Edit", visible=None)) is not None), None)
+    if edit is None:
+        raise DialuxUIError("Campo de nome do diálogo de arquivo não encontrado.")
+    ui.set_text_win32(edit, str(path), "nome do arquivo")
 
 
 def _escape_keys(s: str) -> str:
@@ -608,10 +608,25 @@ def _messages() -> list[str]:
     lb = ui.wait_until(lambda: ui.find(M(), aid="_listBox", ctype="List", visible=None), 5, "lista de mensagens")
     msgs = [" ".join(t.element_info.name for t in ui.walk(it) if t.element_info.control_type == "Text"
                      and t.element_info.name.strip()) for it in lb.children()]
-    c = ui.find(M(), aid="Close", ctype="Button")
-    if c is not None:
-        ui.invoke(c, "fechar mensagens")
-    return msgs
+    _close_messages()
+    return [m for m in msgs if m and m != "Não há mensagens" and not m.startswith("mensagens mais antigas")]
+
+
+def _close_messages() -> None:
+    def win():
+        return ui.find(M(), aid="_listBox", ctype="List", visible=None)
+
+    for _ in range(3):
+        if win() is None:
+            return
+        c = ui.find(M(), aid="Close", ctype="Button", visible=None)
+        if c is not None:
+            ui.invoke(c, "fechar mensagens")
+        else:
+            ui.invoke(ui.find(M(), aid="ToggleButtonShowUserLogPopup", visible=None), "alternar mensagens")
+        time.sleep(0.6)
+    if win() is not None:
+        raise DialuxUIError("Não consegui fechar a janela de mensagens do DIALux.")
 
 
 def calculate(timeout: float = 1800) -> dict:

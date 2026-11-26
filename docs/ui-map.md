@@ -1,4 +1,4 @@
-# Mapa da UI do DIALux evo 14 (UI Automation)
+﻿# Mapa da UI do DIALux evo 14 (UI Automation)
 
 DIALux evo 14.0 (instalado como 5.14.0.5), interface em português. Aplicação WPF: quase todos os
 controles têm AutomationId estável. Dumps completos em `docs/ui-dumps/`.
@@ -72,8 +72,9 @@ assume como altura de montagem o pé-direito do ambiente de contexto, e é assim
   `buttonPageGoTo` ("Página 1 de N"). A lista `FilterTreeListBox` só muda a pré-visualização.
 - Exportar: `MenuSaveAs` › `MenuItem` › `ExportFormatMenuItem_Pdf` (também `_Word2007`, `_Ppt2007`, `_Excel2007`)
   → janela "Ficheiro Adobe PDF - Configuração de exportação" (`checkBoxOpenAfterExport`, `buttonOk`) → diálogo
-  Salvar do Windows (`1001` = nome, `1` = Salvar). **O diálogo Salvar ignora ValuePattern** (grava com o nome
-  padrão em Downloads): é preciso digitar no campo.
+  Salvar do Windows (`1001` = nome, `1` = Salvar). **O diálogo Salvar ignora ValuePattern e `WM_SETTEXT`**
+  (grava com o nome padrão na última pasta). Funciona limpar com `WM_SETTEXT` e enviar o caminho como
+  `WM_CHAR` direto ao controle, sem foco nem teclado físico. O mesmo método é usado no diálogo Abrir.
 
 ## Cálculo
 `CalculationButtonStart`; terminou quando `DiscardResultsButton` fica habilitado (7 a 15 s nos testes). Falha
