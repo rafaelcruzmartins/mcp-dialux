@@ -1,4 +1,4 @@
-"""Write a generic EULUMDAT (.ldt): 600x600 LED panel, Lambertian, rotationally symmetric.
+﻿"""Write a generic EULUMDAT (.ldt): 600x600 LED panel, Lambertian, rotationally symmetric.
 
 Lambertian: I(g) = I0*cos(g) for g<=90, 0 above; flux = pi*I0  ->  I0 = 1000*LOR/pi cd/klm.
 uv run python scripts/make_generic_ldt.py [out.ldt] [flux_lm] [watts]
@@ -18,9 +18,9 @@ name = f"Generico Painel LED {int(flux)}lm {int(watts)}W"
 L = [
     "dialux-mcp-server (generico)",  # 1 company
     "1",            # 2 Ityp point source, vertical symmetry
-    "1",            # 3 Isym symmetric about vertical axis
-    "36",           # 4 Mc
-    "10",           # 5 Dc
+    "0",            # 3 Isym 0: full matrix (Isym=1 made the evo 14 calculation fail)
+    "24",           # 4 Mc
+    "15",           # 5 Dc
     str(len(gammas)),  # 6 Ng
     "5",            # 7 Dg
     "GEN-001",      # 8 measurement report
@@ -44,9 +44,10 @@ L = [
     f"{watts:g}",   # 26f wattage incl. gear
 ]
 L += ["0.5", "0.6", "0.67", "0.72", "0.76", "0.8", "0.84", "0.87", "0.9", "0.92"]  # 27 direct ratios
-L += [str(c * 10) for c in range(36)]  # 28 C angles
+L += [str(c * 15) for c in range(24)]  # 28 C angles
 L += [str(g) for g in gammas]          # 29 gamma angles
-L += [f"{v:g}" for v in intens]        # 30 intensities (one plane, Isym=1)
+L += [f"{v:g}" for _ in range(24) for v in intens]  # 30 intensities, all 24 planes
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_bytes(("\r\n".join(L) + "\r\n").encode("latin-1"))
 print(out.resolve())
+

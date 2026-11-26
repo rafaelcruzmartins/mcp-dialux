@@ -157,12 +157,23 @@ def goto(tool: str, timeout: float = 20):
         return tab is not None and _is_selected(tab)
 
     try:
-        ui.wait_until(shown, timeout / 2, f"ferramenta {tool}")
+        ui.wait_until(shown, timeout / 3, f"ferramenta {tool}")
+        return
     except DialuxUIError:
-        tab = ui.find(M(), aid=tab_aid, ctype="TabItem", visible=None)
-        if tab is not None:
-            ui.invoke(tab, f"aba {tab_aid}")
-        ui.wait_until(shown, timeout / 2, f"ferramenta {tool}")
+        pass
+    # WPF realizes a tool panel's content only on a selection change: select a
+    # sibling tool tab, then the wanted one again.
+    tab = ui.find(M(), aid=tab_aid, ctype="TabItem", visible=None)
+    if tab is None:
+        raise DialuxUIError(f"Aba da ferramenta {tab_aid} não encontrada.")
+    sibling = next((t for t in tab.parent().children()
+                    if t.element_info.control_type == "TabItem" and t.is_enabled()
+                    and t.element_info.automation_id not in (tab_aid, "Separator")), None)
+    if sibling is not None:
+        sibling.iface_selection_item.Select()
+        time.sleep(0.8)
+    ui.find(M(), aid=tab_aid, ctype="TabItem", visible=None).iface_selection_item.Select()
+    ui.wait_until(shown, timeout * 2 / 3, f"ferramenta {tool}")
 
 
 def _is_selected(el) -> bool:
