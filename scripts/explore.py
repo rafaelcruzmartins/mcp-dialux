@@ -26,8 +26,9 @@ def dump_all(label, depth=14):
                 lines += ui.dump(w, depth)
         except Exception as e:  # noqa: BLE001
             lines.append(f"<err {e}>")
+    from sanitize_dumps import sanitize_text
     p = DUMPS / f"{label}.txt"
-    p.write_text("\n".join(lines), encoding="utf-8")
+    p.write_text(sanitize_text("\n".join(lines)), encoding="utf-8")
     print(f"{len(lines)} lines -> {p}")
 
 
