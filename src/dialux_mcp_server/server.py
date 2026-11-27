@@ -134,6 +134,16 @@ def dialux_import_ifc(ifc_path: str, method: str = "novo", use_dialux_reflectanc
 
 
 @tool
+def dialux_set_room(room: str, new_name: str | None = None, height: float | None = None,
+                    working_plane: float | None = None, workplane_margin: float | None = None) -> dict[str, Any]:
+    """Altera um ambiente: nome, pé-direito (m), altura do plano de trabalho (m) e zona marginal (m).
+
+    Cada valor é relido do painel do DIALux; se não gravar, a ferramenta dá erro.
+    """
+    return dialux.set_room(room, new_name, height, working_plane, workplane_margin)
+
+
+@tool
 def dialux_set_reflectances(room: str, ceiling: float, walls: float, floor: float) -> dict[str, Any]:
     """Define as refletâncias (fração 0..1) de teto, paredes e piso de um ambiente."""
     return dialux.set_reflectances(room, ceiling, walls, floor)

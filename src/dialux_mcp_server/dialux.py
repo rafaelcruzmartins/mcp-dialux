@@ -52,7 +52,8 @@ def dismiss_modals(timeout: float = 0.0) -> list[str]:
     end = time.monotonic() + timeout
     while True:
         w = M()
-        box = ui.find(w, aid="InformationBox", visible=None)
+        # modals are children of the main window or, in unnamed projects, separate top-level windows
+        box = ui.find_any(aid="InformationBox", visible=None)
         if box is not None:
             txt = info_box_text(box)
             if "Guardar" in txt or "guardado" in txt:
@@ -68,7 +69,7 @@ def dismiss_modals(timeout: float = 0.0) -> list[str]:
                 time.sleep(0.4)
                 continue
             raise DialuxUIError(f"DIALux mostra uma mensagem inesperada: {txt!r}")
-        adv = ui.find(w, aid="ProVersionAdvertisingWindow", visible=None)
+        adv = ui.find_any(aid="ProVersionAdvertisingWindow", visible=None)
         if adv is not None:
             t = ui.find(adv, aid="TextBlockAdvertisingTitle", visible=None)
             msg = ui.get_text(t) if t else ""
@@ -100,7 +101,7 @@ def status() -> dict:
         "logged_in": logged,
         "start_screen": start_screen,
         "status_bar": [t for t in ui.texts(sb)] if sb else [],
-        "modal": info_box_text(b) if (b := ui.find(w, aid="InformationBox", visible=None)) else None,
+        "modal": info_box_text(b) if (b := ui.find_any(aid="InformationBox", visible=None)) else None,
     }
 
 
@@ -887,3 +888,24 @@ def import_ifc(path: Path, method: str = "novo", use_dialux_reflectances: bool =
     return {"ifc": str(path), "ifc_spaces": expected, "method": method,
             "use_dialux_reflectances": use_dialux_reflectances, "rooms": out_rooms,
             "project": status()["project"]}
+
+
+def set_room(name: str, new_name: str | None = None, height: float | None = None,
+             working_plane: float | None = None, workplane_margin: float | None = None) -> dict:
+    """Edit one room's properties in the Spaces panel; every value is read back from a rebuilt panel."""
+    with modifying():
+        room_properties(name)
+        final = name
+        if new_name is not None and new_name != name:
+            if new_name in rooms():
+                raise DialuxUIError(f"Já existe um ambiente chamado {new_name!r}.")
+            room_properties(name)
+            set_field("ObjectName", new_name, f"nome de {name}", commit_to="ObjectDescription")
+            final = new_name
+        for aid, val, what in (("Height", height, "pé-direito"),
+                               ("WorkplaneHeightDoubleBox", working_plane, "plano de trabalho"),
+                               ("WorkplaneMarginDoubleBox", workplane_margin, "zona marginal")):
+            if val is not None:
+                room_properties(final)
+                set_field(aid, f"{val:.3f}", f"{what} de {final}", commit_to="ObjectName")
+        return room_properties(final)

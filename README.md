@@ -48,6 +48,7 @@ Variáveis opcionais: `DIALUX_EXE` (caminho do executável) e `DIALUX_MCP_LOG_DI
 | `stf_generate` | JSON de ambientes → `.stf` (STF 1.0.5) | validação do polígono |
 | `dialux_import_stf` | Importa o STF como projeto novo; corrige pé-direito e refletâncias por ambiente | ambientes, pé-direito, plano de trabalho e FM lidos na interface |
 | `dialux_import_ifc` | Importa um IFC (ex.: do Revit) como projeto novo, um ambiente por `IfcSpace`; método novo/legado, refletâncias do IFC ou padrão, plano de trabalho, nomes simplificados | nº de ambientes = nº de `IfcSpace`; pé-direito, plano de trabalho e FM lidos na interface |
+| `dialux_set_room` | Altera nome, pé-direito, plano de trabalho e zona marginal de um ambiente | cada valor relido do painel redesenhado |
 | `dialux_set_reflectances` | Teto/paredes/piso de um ambiente | campos lidos; conferir no relatório |
 | `dialux_import_luminaire` | Importa LDT/IES e ativa a luminária | item no catálogo |
 | `dialux_place_luminaires` | Distribuição automática em campo por ambiente: `target_lux` **ou** `count_x`/`count_y`; `mounting_height` | ambiente do arranjo, quantidade, alvo |
