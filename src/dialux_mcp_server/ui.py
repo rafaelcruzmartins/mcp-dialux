@@ -100,6 +100,25 @@ def main_window(timeout: float = 0) -> BaseWrapper:
     return wait_until(find, timeout, "janela principal do DIALux")
 
 
+def session_locked() -> bool:
+    """True when the Windows session is locked (input desktop is not the user's desktop).
+
+    With a locked session UIA can still read and invoke, but keyboard focus cannot move, so WPF
+    fields are never committed.
+    """
+    import ctypes
+
+    user32 = ctypes.windll.user32
+    DESKTOP_SWITCHDESKTOP = 0x0100
+    h = user32.OpenInputDesktop(0, False, DESKTOP_SWITCHDESKTOP)
+    if not h:
+        return True
+    try:
+        return not user32.SwitchDesktop(h)
+    finally:
+        user32.CloseDesktop(h)
+
+
 def ensure_restored() -> bool:
     """If the DIALux window is minimized, restore it without activating it (WPF does not lay out
     panels while minimized). Returns True when it had to restore."""
@@ -278,6 +297,39 @@ def get_text(el: BaseWrapper) -> str:
         except Exception:  # noqa: BLE001
             pass
     return el.window_text() or ""
+
+
+def top_windows() -> list[BaseWrapper]:
+    """Visible top-level windows of the DIALux process (fast, via EnumWindows); main window first."""
+    import win32gui
+    import win32process
+
+    main = main_window()
+    pid = main.process_id()
+    hwnds = []
+
+    def cb(h, _):
+        if h != main.handle and win32gui.IsWindowVisible(h) and win32process.GetWindowThreadProcessId(h)[1] == pid:
+            hwnds.append(h)
+
+    win32gui.EnumWindows(cb, None)
+    return [main] + [_wrap_hwnd(h) for h in hwnds]
+
+
+def find_any(**crit) -> BaseWrapper | None:
+    """find() over the main window and the other top-level windows of DIALux (popups may be either)."""
+    for w in top_windows():
+        el = find(w, **crit)
+        if el is not None:
+            return el
+    return None
+
+
+def find_all_any(**crit) -> list[BaseWrapper]:
+    out = []
+    for w in top_windows():
+        out.extend(find_all(w, **crit))
+    return out
 
 
 def windows_of_dialux() -> list[BaseWrapper]:

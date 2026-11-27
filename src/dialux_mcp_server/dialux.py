@@ -271,26 +271,73 @@ def select_room(name: str) -> None:
 
 
 # ---------------------------------------------------------------- edits
-def set_field(aid: str, value: str, what: str, commit_to: str | None = None) -> str:
-    """Set a WPF TextBox and commit it by moving focus; returns the read-back text."""
+def _commit_attempt(aid: str, value: str, commit_to: str | None) -> None:
     w = M()
     e = ui.find(w, aid=aid, visible=None)
     if e is None:
-        raise DialuxUIError(f"Campo {what} ({aid}) não está visível.")
+        raise DialuxUIError(f"Campo {aid} não está visível.")
     try:
         e.set_focus()
     except Exception:  # noqa: BLE001
         pass
     e.iface_value.SetValue(value)
     other = ui.find(w, aid=commit_to, visible=None) if commit_to else None
-    try:
+    try:  # WPF commits the binding when the box loses focus
         (other or ui.find(w, aid="ObjectName", visible=None) or w).set_focus()
     except Exception:  # noqa: BLE001
         pass
     time.sleep(0.3)
-    got = ui.get_text(ui.find(M(), aid=aid, visible=None))
-    log.info("set_field %s=%r -> %r", aid, value, got)
-    return got
+    dismiss_modals()
+
+
+def _rerender_tool_panel() -> None:
+    """Rebuild the current tool panel (tree tab and back; keeps the selection) to read committed values."""
+    tabs = [t for t in ui.find_all(M(), ctype="TabItem") if _is_selected(t)
+            and (t.element_info.automation_id or "") not in ("", "ProjectTreeTool")
+            and t.element_info.class_name == "TabItem" and (t.element_info.name or "").startswith(
+                "Dial.Dialux.InteractionTools")]
+    tree = _tab("ProjectTreeTool")
+    if not tabs or tree is None:
+        return
+    cur = tabs[0].element_info.automation_id
+    tree.iface_selection_item.Select()
+    time.sleep(0.6)
+    _tab(cur).iface_selection_item.Select()
+    time.sleep(0.8)
+
+
+def _matches(got: str, value: str) -> bool:
+    try:
+        return same_number(got, float(value.replace(",", ".")))
+    except ValueError:
+        return got.strip() == value.strip()
+
+
+def set_field(aid: str, value: str, what: str, commit_to: str | None = None, verify: bool = True) -> str:
+    """Set a WPF TextBox, commit it by moving focus and (verify=True) read it back from a rebuilt panel.
+
+    A value that only shows in the box but was not committed (e.g. focus could not move) is detected
+    here; one retry is made with DIALux brought to the front, then a clear error is raised.
+    """
+    for attempt in (1, 2):
+        _commit_attempt(aid, value, commit_to)
+        if not verify:
+            got = ui.get_text(ui.find(M(), aid=aid, visible=None))
+            log.info("set_field %s=%r -> %r (sem releitura)", aid, value, got)
+            return got
+        _rerender_tool_panel()
+        el = ui.wait_until(lambda: ui.find(M(), aid=aid, visible=None), 10, f"campo {what} após redesenhar")
+        got = ui.get_text(el)
+        log.info("set_field %s=%r -> %r (tentativa %d, relido)", aid, value, got, attempt)
+        if _matches(got, value):
+            return got
+        if ui.session_locked():
+            raise DialuxUIError(f"{what}: valor não gravado porque a sessão do Windows está bloqueada.")
+        try:  # second try with DIALux in front (focus changes are more reliable there)
+            M().set_focus()
+        except Exception:  # noqa: BLE001
+            pass
+    raise DialuxUIError(f"{what}: escrevi {value!r} mas o DIALux manteve {got!r} (valor não confirmado).")
 
 
 def same_number(a: str, b: float, tol: float = 1e-3) -> bool:
@@ -399,7 +446,7 @@ def set_reflectances(name: str, ceiling: float, walls: float, floor: float) -> d
         ui.wait_until(lambda: ui.find(M(), aid="CeilingRho_Value"), 10, "painel de refletâncias")
         order = list(vals)
         for i, (aid, v) in enumerate(vals.items()):
-            got = set_field(aid, f"{v * 100:.1f}", aid, commit_to=order[(i + 1) % len(order)])
+            got = set_field(aid, f"{v * 100:.1f}", aid, commit_to=order[(i + 1) % len(order)], verify=False)
             if not same_number(got, v * 100, 0.05):
                 raise DialuxUIError(f"{name}: {aid} ficou {got} em vez de {v * 100:.1f}.")
         ui.invoke(ui.wait_until(lambda: (b := ui.find(M(), aid="ApplyRhoButton")) and b.is_enabled() and b,
@@ -430,7 +477,7 @@ def room_properties(name: str) -> dict:
     if get("ObjectName") != name:
         raise DialuxUIError(f"Painel de espaço mostra {get('ObjectName')!r}, esperado {name!r}.")
     return {"name": name, "height": get("Height"), "working_plane": get("WorkplaneHeightDoubleBox"),
-            "maintenance_factor": get("MaintenanceFactor")}
+            "workplane_margin": get("WorkplaneMarginDoubleBox"), "maintenance_factor": get("MaintenanceFactor")}
 
 
 def set_maintenance_factor(mf: float, room_names: list[str] | None = None) -> list[dict]:
@@ -463,13 +510,14 @@ def ldt_identity(path: Path) -> dict:
 
 def catalog_items() -> list[str]:
     menu("MenuGotoConstructionMode", "MenuGotoShowLuminaireCatalogPopup")
-    pop = ui.wait_until(lambda: ui.find(M(), aid="LuminairePopupControl", visible=None), 10, "catálogo de luminárias")
+    # the popup is a child of the main window or a separate top-level window, depending on the project
+    pop = ui.wait_until(lambda: ui.find_any(aid="LuminairePopupControl", visible=None), 20, "catálogo de luminárias")
     # ProjectLuminaireFilterToggleButton: state 1 lists recent/imported luminaires, 0 only placed ones
     flt = ui.find(pop, aid="ProjectLuminaireFilterToggleButton", visible=None)
     if flt is not None and flt.iface_toggle.CurrentToggleState != 1:
         flt.iface_toggle.Toggle()
     time.sleep(1.0)
-    return [i.element_info.automation_id[: -len("_LuminaireCatalogItem")] for i in ui.find_all(M(), ctype="ListItem")
+    return [i.element_info.automation_id[: -len("_LuminaireCatalogItem")] for i in ui.find_all(pop, ctype="ListItem")
             if (i.element_info.automation_id or "").endswith("_LuminaireCatalogItem")]
 
 
@@ -484,7 +532,7 @@ def activate_luminaire(name: str) -> str:
     if len(match) > 1:
         log.warning("catálogo tem %d itens chamados %r; usando o primeiro (mais recente)", len(match), match[0])
     # first match = most recent (the list is ordered by last use)
-    el = next(i for i in ui.find_all(M(), ctype="ListItem")
+    el = next(i for i in ui.find_all_any(ctype="ListItem")
               if i.element_info.automation_id == match[0] + "_LuminaireCatalogItem")
     ui.invoke(el, f"luminária {match[0]}")
     ui.wait_until(lambda: _is_selected(el), 5, f"luminária {match[0]} selecionada no catálogo")
@@ -707,3 +755,85 @@ def export_report(out_path: Path, timeout: float = 600) -> dict:
         size = out_path.stat().st_size
         time.sleep(1.5)
     return {"pdf": str(out_path), "pages": last, "bytes": size}
+
+
+# ---------------------------------------------------------------- IFC
+def _ifc_space_names(path: Path) -> list[str]:
+    """Names of IfcSpace entities, read from the STEP text (no extra dependency)."""
+    txt = Path(path).read_bytes().decode("latin-1", errors="replace")
+    names = []
+    for m in re.finditer(r"=\s*IFCSPACE\s*\((.*?)\);", txt, re.S | re.I):
+        # GlobalId, OwnerHistory(#), Name, ... -> quoted strings in order: GlobalId, Name, ...
+        # (approximate when Name is $; only used to count spaces and report names)
+        quoted = re.findall(r"'((?:[^']|'')*)'", m.group(1))
+        names.append(quoted[1] if len(quoted) > 1 else "")
+    return names
+
+
+def import_ifc(path: Path, method: str = "novo", use_dialux_reflectances: bool = True,
+               working_plane: float | None = None, simplify_names: bool = True,
+               workplane_margin: float | None = None, timeout: float = 600) -> dict:
+    """Import an IFC as a new project through the start screen and the 2-page import wizard."""
+    path = Path(path).resolve()
+    if not path.exists() or path.suffix.lower() != ".ifc":
+        raise DialuxUIError(f"Arquivo .ifc não encontrado: {path}")
+    if method not in ("novo", "legado"):
+        raise DialuxUIError("method deve ser 'novo' ou 'legado'")
+    expected = _ifc_space_names(path)
+    with modifying():
+        # The import asks "Guardar alterações?" when a changed project is open, and answering
+        # Não silently aborts it; closing the project first (discarding, like the other tools) avoids that.
+        if ui.find(M(), aid="StartImportIfc", visible=None) is None:
+            menu("File", "CloseProject")
+            dismiss_modals(2.0)
+        start = ui.wait_until(lambda: ui.find(M(), aid="StartImportIfc", visible=None), 30, "tela inicial")
+        ui.invoke(start, "importar IFC (tela inicial)")
+        file_dialog_open(path, "IFC")
+        # page 1: IFC content (all checked by default)
+        nxt = ui.wait_until(lambda: ui.find(M(), aid="NextPage", visible=None), timeout, "assistente IFC: conteúdo")
+        ui.invoke(nxt, "Continuar")
+        ui.wait_until(lambda: ui.find(M(), aid="FinishPage", visible=None), 60, "assistente IFC: definições")
+        # page 2: settings
+        radio = ui.find(M(), aid=f"RadioButton_GeometryImportOption_{'True' if method == 'novo' else 'False'}",
+                        visible=None)
+        radio.iface_selection_item.Select()
+        ui.wait_until(lambda: radio.iface_selection_item.CurrentIsSelected, 5, f"método {method}")
+        cb = ui.find(M(), aid="CheckBox_IfcReflectance", visible=None)
+        if (cb.iface_toggle.CurrentToggleState == 1) != use_dialux_reflectances:
+            cb.iface_toggle.Toggle()
+        ui.wait_until(lambda: (cb.iface_toggle.CurrentToggleState == 1) == use_dialux_reflectances, 5,
+                      "opção de refletâncias")
+        ui.invoke(ui.find(M(), aid="FinishPage", visible=None), "Terminar")
+        ui.wait_until(lambda: ui.find(M(), aid="FinishPage", visible=None) is None, timeout, "importação IFC")
+        time.sleep(2)
+        dismiss_modals(1.0)
+        rs = ui.wait_until(lambda: rooms() or None, 60, "ambientes importados")
+        if len(rs) != len(expected):
+            raise DialuxUIError(f"O IFC tem {len(expected)} IfcSpace ({expected}) mas o DIALux criou "
+                                f"{len(rs)} ambientes ({sorted(rs)}).")
+        out_rooms = []
+        for name in list(rs):
+            final = name
+            parts = name.split(" - ")
+            if simplify_names and len(parts) == 2 and parts[0] == parts[1]:
+                room_properties(name)
+                got = set_field("ObjectName", parts[0], f"nome {name}", commit_to="ObjectDescription")
+                if got != parts[0]:
+                    raise DialuxUIError(f"Renomear {name!r}: ficou {got!r}.")
+                final = parts[0]
+            if working_plane is not None:
+                room_properties(final)
+                got = set_field("WorkplaneHeightDoubleBox", f"{working_plane:.3f}", f"plano de trabalho {final}",
+                                commit_to="ObjectName")
+                if not same_number(got, working_plane):
+                    raise DialuxUIError(f"{final}: plano de trabalho ficou {got}.")
+            if workplane_margin is not None:
+                room_properties(final)
+                got = set_field("WorkplaneMarginDoubleBox", f"{workplane_margin:.3f}", f"zona marginal {final}",
+                                commit_to="ObjectName")
+                if not same_number(got, workplane_margin):
+                    raise DialuxUIError(f"{final}: zona marginal ficou {got}.")
+            out_rooms.append(room_properties(final))
+    return {"ifc": str(path), "ifc_spaces": expected, "method": method,
+            "use_dialux_reflectances": use_dialux_reflectances, "rooms": out_rooms,
+            "project": status()["project"]}

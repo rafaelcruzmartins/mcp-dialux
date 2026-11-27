@@ -47,6 +47,7 @@ Variáveis opcionais: `DIALUX_EXE` (caminho do executável) e `DIALUX_MCP_LOG_DI
 | `dialux_save_as` | Salva em **novo** `.evo` (recusa se existir) | arquivo gravado + título |
 | `stf_generate` | JSON de ambientes → `.stf` (STF 1.0.5) | validação do polígono |
 | `dialux_import_stf` | Importa o STF como projeto novo; corrige pé-direito e refletâncias por ambiente | ambientes, pé-direito, plano de trabalho e FM lidos na interface |
+| `dialux_import_ifc` | Importa um IFC (ex.: do Revit) como projeto novo, um ambiente por `IfcSpace`; método novo/legado, refletâncias do IFC ou padrão, plano de trabalho, nomes simplificados | nº de ambientes = nº de `IfcSpace`; pé-direito, plano de trabalho e FM lidos na interface |
 | `dialux_set_reflectances` | Teto/paredes/piso de um ambiente | campos lidos; conferir no relatório |
 | `dialux_import_luminaire` | Importa LDT/IES e ativa a luminária | item no catálogo |
 | `dialux_place_luminaires` | Distribuição automática em campo por ambiente: `target_lux` **ou** `count_x`/`count_y`; `mounting_height` | ambiente do arranjo, quantidade, alvo |
@@ -65,7 +66,7 @@ JSON de entrada do `stf_generate` (comprimentos em metros, refletâncias em fra�
    {"name": "Sala B", "polygon": [[6,0],[11,0],[11,4],[6,4]], "height": 3.0}]}
 ```
 
-Fluxo típico: `stf_generate` → `dialux_import_stf` (com o mesmo JSON) → `dialux_import_luminaire` →
+Fluxo típico: `stf_generate` → `dialux_import_stf` (com o mesmo JSON), ou `dialux_import_ifc` → `dialux_import_luminaire` →
 `dialux_place_luminaires` (uma vez por ambiente) → `dialux_set_maintenance_factor` → `dialux_calculate` →
 `dialux_export_report` → `report_read` → `dialux_save_as`.
 
@@ -91,8 +92,9 @@ contra o JSON de entrada. Saídas em `work/e2e-<data>/`.
 - **Catálogo de luminárias:** a seleção é por nome; com nomes repetidos nos recentes usa-se o mais
   recente. Prefira nomes/códigos únicos.
 - **UGR** só aparece no relatório quando o DIALux o calcula (coluna RUG); caso contrário é `null`.
-- **IFC:** em desenvolvimento. Nos testes, `Ficheiro › Importar › Ficheiro IFC` não importou o IFC de
-  exemplo (`examples/ifc/`, gerado por `scripts/make_test_ifc.py`) e o DIALux não deu mensagem.
+- **IFC:** requer DIALux Pro. O pé-direito de cada ambiente vem do IFC (sem a limitação do STF). Os
+  nomes chegam como "Name - LongName" (a ferramenta simplifica quando são iguais). IFC de teste em
+  `examples/ifc/` (gerado por `scripts/make_test_ifc.py`); teste: `uv run python tests/live/e2e.py --ifc`.
 - O servidor responde **Não** a "Guardar alterações?" e ao lembrete de autosave: alterações não salvas
   do projeto aberto são descartadas ao importar/abrir/criar. Use `dialux_save_as` antes.
 - Uma operação por vez (a interface é única); não use o DIALux manualmente durante uma chamada.
@@ -101,6 +103,9 @@ contra o JSON de entrada. Saídas em `work/e2e-<data>/`.
   `WM_CHAR` direto para o controle. Confirmar valores em campos do WPF exige mover o foco dentro do
   DIALux, então a janela dele pode vir para frente por um instante. Se estiver minimizada, é restaurada
   sem ativar no início de cada ferramenta.
+- **Computador bloqueado:** com a sessão do Windows bloqueada o DIALux não aceita valores digitados (o foco
+  não se move). As ferramentas detectam isso e param com erro pedindo para desbloquear. Valores de campos
+  são sempre relidos do painel redesenhado; um valor que não foi gravado gera erro, nunca sucesso falso.
 - A vista 3D/planta não é acessível por UIA; nada do fluxo depende dela.
 
 Mapa dos controles da interface: [docs/ui-map.md](docs/ui-map.md).

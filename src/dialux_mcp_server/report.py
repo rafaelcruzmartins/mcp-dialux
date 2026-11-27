@@ -1,4 +1,4 @@
-"""Parse a DIALux evo 14 PDF report (Portuguese UI) into per-room JSON.
+﻿"""Parse a DIALux evo 14 PDF report (Portuguese UI) into per-room JSON.
 
 Pages used (header = 2nd line of each page, "<building> · <storey> · <room> [(<scene>)]"):
 - "Resumo": area, clear height, reflectances, maintenance factor, mounting and work-plane height
@@ -78,6 +78,7 @@ def read(pdf_path: str | Path, rooms: list[str] | None = None) -> dict[str, Any]
             "room": name, "Em_lx": None, "Emin_lx": None, "Emax_lx": None, "U0": None, "g2": None,
             "UGR": None, "luminaires": [], "luminaire_count": None, "power_w": None,
             "area_m2": None, "clear_height_m": None, "mounting_height_m": None, "workplane_height_m": None,
+            "workplane_margin_m": None,
             "maintenance_factor": None, "reflectances_pct": {}, "pages": [],
         })
 
@@ -116,6 +117,8 @@ def read(pdf_path: str | Path, rooms: list[str] | None = None) -> dict[str, Any]
                     r["mounting_height_m"] = _f(m.group(1))
                 if (m := re.search(rf"Altura Plano de uso {NUM} m", text)):
                     r["workplane_height_m"] = _f(m.group(1))
+                if (m := re.search(rf"Zona marginal Plano de uso {NUM} m", text)):
+                    r["workplane_margin_m"] = _f(m.group(1))
                 if (m := re.search(rf"Factor de manutenção {NUM}", text)):
                     r["maintenance_factor"] = _f(m.group(1))
                 for key, label in (("ceiling", "Tecto"), ("walls", "Paredes"), ("floor", "Solo")):
@@ -136,4 +139,5 @@ def read(pdf_path: str | Path, rooms: list[str] | None = None) -> dict[str, Any]
     for r in rooms_out:
         r["complete"] = all(r[k] is not None for k in ("Em_lx", "Emin_lx", "Emax_lx", "U0", "luminaire_count"))
     return {"pdf": str(pdf_path.resolve()), "project": project, "pages": n_pages, "rooms": rooms_out,
-            "notes": ["UGR fica null quando o DIALux não o calcula (coluna RUG com '–')."]}
+            "notes": ["UGR fica null quando o DIALux não o calcula (coluna RUG com '–').",
+                      "clear_height_m fica null para ambientes importados de IFC (o relatório não traz essa linha)."]}

@@ -34,6 +34,9 @@ def tool(fn):
             log.info("TOOL %s %s", fn.__name__, json.dumps(kwargs, ensure_ascii=False, default=str))
             try:
                 if fn.__name__ not in ("stf_generate", "report_read"):
+                    if ui.session_locked():
+                        raise DialuxUIError("A sessão do Windows está bloqueada: com a tela bloqueada o DIALux não "
+                                            "aceita valores digitados. Desbloqueie o computador e repita.")
                     ui.ensure_restored()
                 out = fn(*args, **kwargs)
             except (DialuxUIError, stf.StfError, FileNotFoundError, ValueError) as e:
@@ -111,6 +114,23 @@ def dialux_import_stf(stf_path: str, project_json: dict[str, Any] | None = None)
         if want != got:
             raise DialuxUIError(f"Ambientes importados {sorted(got)} diferem do JSON {sorted(want)}.")
     return res
+
+
+@tool
+def dialux_import_ifc(ifc_path: str, method: str = "novo", use_dialux_reflectances: bool = True,
+                      working_plane: float | None = None, simplify_names: bool = True,
+                      workplane_margin: float | None = None) -> dict[str, Any]:
+    """Importa um IFC (ex.: exportado do Revit) como projeto novo, criando um ambiente por IfcSpace.
+
+    Fecha o projeto atual descartando alterações não salvas. method: 'novo' (recomendado pelo DIALux)
+    ou 'legado'. use_dialux_reflectances=True aplica as refletâncias padrão do DIALux; False mantém as
+    do IFC. working_plane (m) define o plano de trabalho de todos os ambientes (padrão do DIALux: 0,80).
+    simplify_names transforma 'Sala A - Sala A' (Name - LongName) em 'Sala A'.
+    workplane_margin (m): zona marginal do plano de trabalho; o IFC entra com 0,50 m (o STF com 0,00 m).
+    Confere: nº de ambientes = nº de IfcSpace; devolve pé-direito, plano de trabalho e FM lidos na interface.
+    """
+    return dialux.import_ifc(Path(ifc_path), method, use_dialux_reflectances, working_plane, simplify_names,
+                             workplane_margin)
 
 
 @tool

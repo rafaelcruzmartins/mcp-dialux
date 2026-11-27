@@ -1,4 +1,4 @@
-"""End-to-end test through the MCP protocol (stdio): 2 rooms, generic LDT, 300 lx, report -> JSON.
+﻿"""End-to-end test through the MCP protocol (stdio): 2 rooms, generic LDT, 300 lx, report -> JSON.
 
 Requires DIALux evo open and logged in. Run:  uv run python tests/live/e2e.py [--from N]
 Each step calls one tool; the run stops at the first error.
@@ -18,11 +18,25 @@ PROJECT = json.loads((ROOT / "examples" / "duas-salas.json").read_text(encoding=
 LDT = ROOT / "examples" / "luminarias" / "generico_painel_4000lm_32W.ldt"
 TARGET = 300
 
+IFC_MODE = "--ifc" in sys.argv  # same 2 rooms from examples/ifc/duas-salas.ifc (scripts/make_test_ifc.py)
+IFC = ROOT / "examples" / "ifc" / "duas-salas.ifc"
+if IFC_MODE:
+    OUT = OUT.with_name(OUT.name + "-ifc")
+    for _r in PROJECT["rooms"]:  # what the IFC import is expected to produce
+        _r["working_plane"] = 0.75
+        _r["reflectances"] = {"ceiling": 0.7, "walls": 0.5, "floor": 0.2}  # DIALux defaults
+
+IMPORT_STEPS = [
+    ("dialux_import_ifc", lambda r: {"ifc_path": str(IFC), "working_plane": 0.75, "workplane_margin": 0.0}),
+] if IFC_MODE else [
+    ("stf_generate", lambda r: {"project": PROJECT, "out_path": str(OUT / "duas-salas.stf")}),
+    ("dialux_import_stf", lambda r: {"stf_path": r["stf_generate"]["path"], "project_json": PROJECT}),
+]
+
 STEPS = [
     ("dialux_status", lambda r: {}),
     ("dialux_open", lambda r: {}),
-    ("stf_generate", lambda r: {"project": PROJECT, "out_path": str(OUT / "duas-salas.stf")}),
-    ("dialux_import_stf", lambda r: {"stf_path": r["stf_generate"]["path"], "project_json": PROJECT}),
+    *IMPORT_STEPS,
     ("dialux_import_luminaire", lambda r: {"file_path": str(LDT)}),
     *[(f"dialux_place_luminaires#{room['name']}",
        (lambda name: lambda r: {"room": name, "luminaire": r["dialux_import_luminaire"]["catalog_name"],
@@ -77,7 +91,10 @@ async def main():
         checks = [
             ("luminárias > 0", (r["luminaire_count"] or 0) > 0),
             (f"Em >= {TARGET} lx", (r["Em_lx"] or 0) >= TARGET),
-            ("pé-direito", r["clear_height_m"] == spec["height"]),
+            ("pé-direito", (r["clear_height_m"] if r["clear_height_m"] is not None else
+                            float(next(x["height"] for x in results["dialux_import_ifc"]["rooms"]
+                                       if x["name"] == spec["name"]))) == spec["height"]),
+            ("zona marginal 0", r["workplane_margin_m"] == 0.0),
             ("plano de trabalho", r["workplane_height_m"] == spec["working_plane"]),
             ("FM 0.8", r["maintenance_factor"] == 0.8),
             ("refletâncias", r["reflectances_pct"] == {"ceiling": round(refl["ceiling"] * 100, 1),

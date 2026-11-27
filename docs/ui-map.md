@@ -105,3 +105,16 @@ nativo da UIA com condições de propriedade (visão completa). As abas de modo 
 - Cálculo: `CalculationButtonStart` dispara; o popup de opções mostra "Cálculo a funcionar...". **Nos dois testes (2 salas e 1 sala, LDT genérico) terminou com "Ocorreu um erro no cálculo"** (lista de mensagens: `ToggleButtonShowUserLogPopup` › `_listBox`). O DIALux não grava log em disco. Causa ainda não isolada; o próximo teste é com luminária de membro (Philips WT210C).
 - Problema em aberto: depois de importar um novo STF, o painel da aba de luminárias pode ficar vazio (só `hideToolsButton`); invocar esse botão não restaurou o conteúdo.
 - Nomes da árvore: STF com 1 sala → "Edifício <sala> › Andar <sala>"; com várias → "STF Building › STF Storey". Localizar o ambiente por `_Salas e espaços_<nome>`.
+
+## Importação IFC (tela inicial › `StartImportIfc`)
+1. Diálogo "Importar ficheiro" (`1148`, `1`).
+2. **Assistente dentro da janela** (painel de ferramenta, não é janela separada; trocar de aba o cancela):
+   - Página 1 "Conteúdo do ficheiro IFC": `FilterTreeListBox` com o conteúdo (itens `<arquivo>.ifc_<projeto>_…`,
+     caixas marcadas por padrão), `PreviousPage`, `CancelPage`, `NextPage` (Continuar).
+   - Página 2 "Definições de importação IFC": `RadioButton_GeometryImportOption_True` (novo método, recomendado) /
+     `_False` (legado), `CheckBox_IfcReflectance` (marcada = substitui pelas refletâncias padrão do DIALux),
+     `FinishPage` (Terminar).
+3. Resultado: árvore `<Site>_<Building>_<Storey>_Salas e espaços_<Name> - <LongName>`; pé-direito de cada
+   ambiente vem do IFC; plano de trabalho padrão 0,80 m.
+- Com um projeto alterado aberto, a importação pergunta "Guardar alterações?" e **responder Não cancela a
+  importação em silêncio**; por isso a ferramenta fecha o projeto antes (`File` › `CloseProject`).
