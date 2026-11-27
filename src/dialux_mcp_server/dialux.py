@@ -654,28 +654,48 @@ def place_luminaires(room: str, luminaire: str, mounting_height: float | None = 
         return _place(room, luminaire, mounting_height, target_lux, count_x, count_y)
 
 
-def set_room_context(name: str) -> None:
-    """Make `name` the active room context (used by 'Distribuição automática' and room reflectances)."""
-    dismiss_modals()
-    btn = ui.find(M(), aid="ToggleButton_RoomContextSelectionButton", visible=None)
+def _select_context(kind: str, name: str) -> None:
+    """Pick `name` in the view's context selector `kind` ('Storey' or 'Room')."""
+    btn_aid = f"ToggleButton_{kind}ContextSelectionButton"
+    btn = ui.find(M(), aid=btn_aid, visible=None)
     if btn is None:  # e.g. in Documentation mode: go back to a mode with the CAD view
         goto("luminaires", ready=False)
-        btn = ui.wait_until(lambda: ui.find(M(), aid="ToggleButton_RoomContextSelectionButton", visible=None),
-                            15, "seletor de contexto de ambiente")
+        btn = ui.wait_until(lambda: ui.find(M(), aid=btn_aid, visible=None), 15, f"seletor de contexto ({kind})")
     mi = ui.find(btn, aid="_menuItemControl", visible=None)
+    if mi is None:
+        raise DialuxUIError(f"O seletor de contexto ({kind}) está vazio neste estado da vista.")
     mi.iface_expand_collapse.Expand()
+    prefix = f"MenuItem_{btn_aid}_"
 
     def item():
-        for x in ui.find_all(M(), ctype="MenuItem"):
-            if (x.element_info.automation_id or "").startswith("MenuItem_ToggleButton_RoomContextSelectionButton_") \
+        for x in ui.find_all_any(ctype="MenuItem"):
+            if (x.element_info.automation_id or "").startswith(prefix) \
                     and any(t.element_info.name == name for t in ui.walk(x)):
                 return x
         return None
 
-    it = ui.wait_until(item, 5, f"ambiente {name} no seletor de contexto")
-    ui.invoke(it, f"contexto {name}")
+    it = ui.wait_until(item, 5, f"{name} no seletor de contexto ({kind})")
+    ui.invoke(it, f"contexto {kind} {name}")
     time.sleep(1.0)
     dismiss_modals()
+
+
+def set_room_context(name: str) -> None:
+    """Make `name` the active room context (used by 'Distribuição automática' and room reflectances).
+
+    The room selector only lists the rooms of the storey in context, so the room's storey (taken from
+    the project tree) is put in context first.
+    """
+    dismiss_modals()
+    aid = rooms().get(name)
+    if aid is None:
+        raise DialuxUIError(f"Ambiente {name!r} não existe no projeto.")
+    storey = aid.split(ROOMS_NODE, 1)[0].rsplit("_", 1)[-1]
+    try:
+        _select_context("Storey", storey)
+    except DialuxUIError as e:
+        log.warning("contexto de pavimento %s não definido (%s); seguindo para o ambiente", storey, e)
+    _select_context("Room", name)
 
 
 def _place(room, luminaire, mounting_height, target_lux, count_x, count_y) -> dict:
@@ -690,11 +710,16 @@ def _place(room, luminaire, mounting_height, target_lux, count_x, count_y) -> di
     ui.invoke(ui.find(M(), aid="aid_ArrangementFromSpace"), f"distribuição automática em {room}")
     dismiss_modals(1.5)
     ui.wait_until(lambda: ui.find(M(), aid="TargetIlluminance", visible=None), 15, "painel do arranjo")
-    # a new field arrangement takes the context room's ceiling as mounting height
+    # A new field arrangement normally takes the context room's ceiling as mounting height. In projects
+    # imported from IFC with absolute storey elevations DIALux proposes a wrong value (e.g. -16.251 m),
+    # so the mounting height is always set explicitly (default: room height = surface mounted) and read back.
     default_h = _arr_get("MountingHeight_Value")
+    notes = []
     if not same_number(default_h, room_h, 0.002):
-        raise DialuxUIError(f"Arranjo parece ter sido criado em outro ambiente: altura padrão {default_h} m, "
-                            f"pé-direito de {room} = {room_h} m. Desfaça (Ctrl+Z) e verifique o contexto.")
+        notes.append(f"altura de montagem proposta pelo DIALux era {default_h} m; ajustada")
+        log.warning("%s: altura padrão do arranjo %s (pé-direito %s)", room, default_h, room_h)
+    if mounting_height is None:
+        mounting_height = room_h
     if mounting_height is not None:
         got = set_field("MountingHeight_Value", f"{mounting_height:.3f}", "altura de montagem",
                         commit_to="ArrangementObjectName")
@@ -719,7 +744,7 @@ def _place(room, luminaire, mounting_height, target_lux, count_x, count_y) -> di
            "count_x": _arr_get("ElementCountX"), "count_y": _arr_get("ElementCountY"),
            "estimated_lux": _arr_get("EstimatedIlluminance"),
            "mounting_height": _arr_get("MountingHeight_Value"),
-           "flux_lm": _arr_get("TotalLuminaireFlux_1"), "power_w": _arr_get("Load_1")}
+           "flux_lm": _arr_get("TotalLuminaireFlux_1"), "power_w": _arr_get("Load_1"), "notes": notes}
     if not n:
         raise DialuxUIError(f"Arranjo sem luminárias: {res}")
     return res
