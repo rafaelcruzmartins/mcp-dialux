@@ -323,6 +323,7 @@ def select_room(name: str) -> None:
 
 # ---------------------------------------------------------------- edits
 def _commit_attempt(aid: str, value: str, commit_to: str | None) -> None:
+    dismiss_modals()  # a dialog appearing mid-edit can steal the value
     w = M()
     e = ui.find(w, aid=aid, visible=None)
     if e is None:
@@ -894,7 +895,7 @@ def set_room(name: str, new_name: str | None = None, height: float | None = None
              working_plane: float | None = None, workplane_margin: float | None = None) -> dict:
     """Edit one room's properties in the Spaces panel; every value is read back from a rebuilt panel."""
     with modifying():
-        room_properties(name)
+        before = room_properties(name)
         final = name
         if new_name is not None and new_name != name:
             if new_name in rooms():
@@ -908,4 +909,13 @@ def set_room(name: str, new_name: str | None = None, height: float | None = None
             if val is not None:
                 room_properties(final)
                 set_field(aid, f"{val:.3f}", f"{what} de {final}", commit_to="ObjectName")
-        return room_properties(final)
+        after = room_properties(final)
+        # nothing else may have changed (a dialog popping up mid-edit once sent a value to the wrong field)
+        expect = dict(before, name=final)
+        for key, val in (("height", height), ("working_plane", working_plane), ("workplane_margin", workplane_margin)):
+            if val is not None:
+                expect[key] = after[key]
+        changed = {k: (expect[k], after[k]) for k in expect if str(expect[k]) != str(after[k])}
+        if changed:
+            raise DialuxUIError(f"{final}: propriedades mudaram sem terem sido pedidas: {changed}. Confira o ambiente.")
+        return after
