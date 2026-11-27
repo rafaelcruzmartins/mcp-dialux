@@ -243,10 +243,48 @@ def _escape_keys(s: str) -> str:
 
 
 # ---------------------------------------------------------------- project tree
-def tree_items() -> list[str]:
+def _tree_list():
+    """The project-tree ListBox (virtualized: only items in view exist in the UIA tree)."""
     goto("tree")
-    return [i.element_info.automation_id for i in ui.find_all(M(), ctype="ListItem")
-            if i.element_info.automation_id]
+    tab = _tab("ProjectTreeTool")
+    lst = ui.find(tab, ctype="List", visible=None) if tab is not None else None
+    if lst is None:
+        raise DialuxUIError("Lista da árvore de projeto não encontrada.")
+    return lst
+
+
+def _scroll_positions(lst):
+    """Yield after scrolling the list through its whole height (top to bottom)."""
+    try:
+        sp = lst.iface_scroll
+        view = sp.CurrentVerticalViewSize
+    except Exception:  # noqa: BLE001 - not scrollable: everything is already realized
+        yield
+        return
+    if view >= 100 or view <= 0:
+        yield
+        return
+    step = max(5.0, view * 0.8)
+    pct = 0.0
+    while True:
+        sp.SetScrollPercent(-1, min(pct, 100.0))
+        time.sleep(0.35)
+        yield
+        if pct >= 100.0:
+            break
+        pct += step
+
+
+def tree_items() -> list[str]:
+    """AutomationIds of all project-tree items, scrolling through the virtualized list."""
+    lst = _tree_list()
+    seen: list[str] = []
+    for _ in _scroll_positions(lst):
+        for i in lst.children():
+            a = i.element_info.automation_id
+            if a and a not in seen:
+                seen.append(a)
+    return seen
 
 
 def rooms() -> dict[str, str]:
@@ -264,10 +302,22 @@ def select_room(name: str) -> None:
     rs = rooms()
     if name not in rs:
         raise DialuxUIError(f"Ambiente {name!r} não existe no projeto. Ambientes: {sorted(rs)}")
-    item = ui.find(M(), aid=rs[name], ctype="ListItem")
+    aid = rs[name]
+    lst = _tree_list()
+    item = None
+    for _ in _scroll_positions(lst):  # bring the virtualized item into existence
+        item = next((i for i in lst.children() if i.element_info.automation_id == aid), None)
+        if item is not None:
+            break
+    if item is None:
+        raise DialuxUIError(f"Não consegui trazer o ambiente {name!r} à vista na árvore.")
+    try:
+        item.iface_scroll_item.ScrollIntoView()
+    except Exception:  # noqa: BLE001
+        pass
     ui.invoke(item, f"selecionar ambiente {name}")
-    ui.wait_until(lambda: _is_selected(ui.find(M(), aid=rs[name], ctype="ListItem")), 5,
-                  f"ambiente {name} selecionado")
+    ui.wait_until(lambda: any(i.element_info.automation_id == aid and _is_selected(i) for i in lst.children()),
+                  5, f"ambiente {name} selecionado")
 
 
 # ---------------------------------------------------------------- edits
