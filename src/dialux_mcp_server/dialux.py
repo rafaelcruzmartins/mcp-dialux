@@ -147,17 +147,39 @@ def _find_menu_item(aid: str):
     return None
 
 
-def menu(*path: str) -> None:
-    """Open a menu path by AutomationIds, e.g. menu('File','Import','ImportStf')."""
-    dismiss_modals()
-    for aid in path[:-1]:
-        item = ui.wait_until(lambda a=aid: _find_menu_item(a), 10, f"menu {aid}")
-        item.iface_expand_collapse.Expand()
-        time.sleep(0.3)
-    last = ui.wait_until(lambda: _find_menu_item(path[-1]), 10, f"menu {path[-1]}")
-    if not last.is_enabled():
-        raise DialuxUIError(f"Item de menu {path[-1]} está desabilitado neste estado.")
-    ui.invoke(last, "menu " + "/".join(path))
+def menu(*path: str, attempts: int = 3) -> None:
+    """Open a menu path by AutomationIds, e.g. menu('File','Import','ImportStf').
+
+    Retries: a popup that is still closing (e.g. the luminaire catalog) can keep a submenu from opening.
+    """
+    for attempt in range(1, attempts + 1):
+        dismiss_modals()
+        try:
+            for aid in path[:-1]:
+                item = ui.wait_until(lambda a=aid: _find_menu_item(a), 8, f"menu {aid}")
+                item.iface_expand_collapse.Expand()
+                time.sleep(0.3)
+            last = ui.wait_until(lambda: _find_menu_item(path[-1]), 8, f"menu {path[-1]}")
+            if not last.is_enabled():
+                raise DialuxUIError(f"Item de menu {path[-1]} está desabilitado neste estado.")
+            ui.invoke(last, "menu " + "/".join(path))
+            return
+        except DialuxUIError as e:
+            if "desabilitado" in str(e) or attempt == attempts:
+                raise
+            log.warning("menu %s falhou (tentativa %d): %s; fechando menus e tentando de novo", path, attempt, e)
+            for aid in reversed(path[:-1]):
+                it = _find_menu_item(aid)
+                try:
+                    if it is not None:
+                        it.iface_expand_collapse.Collapse()
+                except Exception:  # noqa: BLE001
+                    pass
+            try:
+                M().set_focus()
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(2.0)
 
 
 TOOLS = {
